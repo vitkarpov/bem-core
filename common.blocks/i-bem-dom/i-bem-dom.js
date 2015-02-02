@@ -296,6 +296,8 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
          */
         this._needSpecialUnbind = false;
 
+        this._domEventsStorage = {};
+
         this.__base(null, params, initImmediately);
     },
 
@@ -475,6 +477,51 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
         });
 
         return res;
+    },
+
+    /**
+     * Returns an manager to bind and unbind events for particular context
+     * @param {Function|String|BemDomEntity|document|window} [ctx=this.domElem] context to bind,
+     *     can be BEM-entity class, instance, element name, document or window
+     * @returns {DomEventManager}
+     */
+    domEvents : function(ctx) {
+        if(arguments.length) {
+            if(ctx.jquery && ctx.length === 1) {
+                if(ctx[0] !== window && ctx[0] !== document)
+                    throw Error('DOM-events: jQuery-chain can contain only document or window');
+            } else if(ctx === window || ctx === document) {
+                ctx = $(ctx);
+            }
+        } else {
+            ctx = this.domElem;
+        }
+
+
+        return {
+            /**
+             * Adds an event handler
+             * @param {String} e Event type
+             * @param {Object} [data] Additional data that the handler gets as e.data
+             * @param {Function} fn Handler
+             * @returns {Emitter} this
+             */
+            on : function(e, data, fn) {
+                ctx.on(e, data, fn);
+                return this;
+            },
+
+            /**
+             * Removes event handler or handlers
+             * @param {String} [e] Event type
+             * @param {Function} [fn] Handler
+             * @returns {Emitter} this
+             */
+            un : function(e, fn) {
+                ctx.off(e, fn);
+                return this;
+            }
+        };
     },
 
     /**
