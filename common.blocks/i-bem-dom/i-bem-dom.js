@@ -481,17 +481,24 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
 
     /**
      * Returns an manager to bind and unbind events for particular context
-     * @param {Function|String|BemDomEntity|document|window} [ctx=this.domElem] context to bind,
-     *     can be BEM-entity class, instance, element name, document or window
+     * @param {Function|String|Object|BemDomEntity|document|window} [ctx=this.domElem] context to bind,
+     *     can be BEM-entity class, instance, element name or description (elem, modName, modVal), document or window
      * @returns {DomEventManager}
      */
     domEvents : function(ctx) {
+        var selector = '';
+
         if(arguments.length) {
+            var typeOfCtx = typeof ctx;
             if(ctx.jquery && ctx.length === 1) {
                 if(ctx[0] !== window && ctx[0] !== document)
                     throw Error('DOM-events: jQuery-chain can contain only document or window');
             } else if(ctx === window || ctx === document) {
                 ctx = $(ctx);
+            } else if(typeOfCtx === 'string' || (typeOfCtx === 'object' && ctx.elem)) {
+                typeOfCtx === 'string' && (ctx = { elem : ctx });
+                selector = '.' + buildClass(this.__self._blockName, ctx.elem, ctx.modName, ctx.modVal);
+                ctx = this.domElem;
             }
         } else {
             ctx = this.domElem;
@@ -507,7 +514,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
              * @returns {Emitter} this
              */
             on : function(e, data, fn) {
-                ctx.on(e, data, fn);
+                ctx.on(e, selector, data, fn);
                 return this;
             },
 
@@ -518,7 +525,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
              * @returns {Emitter} this
              */
             un : function(e, fn) {
-                ctx.off(e, fn);
+                ctx.off(e, selector, fn);
                 return this;
             }
         };
