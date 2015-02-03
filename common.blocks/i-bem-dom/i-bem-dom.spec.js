@@ -1066,6 +1066,8 @@ describe('i-bem-dom', function() {
                 spy1.should.have.been.called;
                 spy2.should.have.been.called;
 
+                spy3.should.have.been.calledOn(block);
+                spy3.args[0][0].bemTarget.should.be.instanceOf(Block);
                 spy3.args[0][0].data.should.have.been.equal(data);
                 spy4.args[0][0].data.should.have.been.equal(data);
             });
@@ -1080,15 +1082,17 @@ describe('i-bem-dom', function() {
 
             it('should properly unbind specified handler', function() {
                 block.domEvents().un('click', spy1);
+                block.domEvents().un({ 'click' : spy2 });
                 block.domElem.trigger('click');
 
                 spy1.should.not.have.been.called;
-                spy2.should.have.been.called;
+                spy2.should.not.have.been.called;
+                spy3.should.have.been.called;
             });
         });
 
         describe('block elems (as string) events', function() {
-            var spy3;
+            var Elem1, Elem2;
 
             beforeEach(function() {
                 spy3 = sinon.spy();
@@ -1106,6 +1110,10 @@ describe('i-bem-dom', function() {
                         }
                     }
                 });
+
+                Elem1 = BEMDOM.declElem('block', 'e1');
+                Elem2 = BEMDOM.declElem('block', 'e2');
+
                 block = createDomNode({ block : 'block', content : [{ elem : 'e1' }, { elem : 'e2' }] })
                     .bem(Block);
             });
@@ -1116,7 +1124,8 @@ describe('i-bem-dom', function() {
                 spy1.should.not.have.been.called;
                 spy2.should.have.been.called;
                 spy3.should.have.been.called;
-
+                spy4.should.have.been.calledOn(block);
+                spy4.args[0][0].bemTarget.should.be.instanceOf(Elem2);
                 spy4.args[0][0].data.should.have.been.equal(data);
                 spy5.args[0][0].data.should.have.been.equal(data);
             });

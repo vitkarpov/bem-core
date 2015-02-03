@@ -486,7 +486,8 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @returns {DomEventManager}
      */
     domEvents : function(ctx) {
-        var selector = '';
+        var selector = '',
+            entityCls;
 
         if(arguments.length) {
             var typeOfCtx = typeof ctx;
@@ -495,15 +496,31 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                     throw Error('DOM-events: jQuery-chain can contain only document or window');
             } else if(ctx === window || ctx === document) {
                 ctx = $(ctx);
-            } else if(typeOfCtx === 'string' || (typeOfCtx === 'object' && ctx.elem)) {
-                typeOfCtx === 'string' && (ctx = { elem : ctx });
-                selector = '.' + buildClass(this.__self._blockName, ctx.elem, ctx.modName, ctx.modVal);
+            } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
+                var elemName;
+                if(typeOfCtx === 'string') {
+                    ctx = { elem : elemName = ctx };
+                } else if(typeOfCtx === 'object') {
+                    typeof typeOfCtx.elem === 'function' && (elemName = ctx.elem.getName());
+                } else {
+                    ctx = { elem : elemName = ctx.getName() };
+                }
+
+                var entityName = buildClass(this.__self._blockName, elemName, ctx.modName, ctx.modVal);
+                entityCls = getEntityCls(entityName);
+                selector = '.' + entityName;
                 ctx = this.domElem;
             }
         } else {
+            entityCls = this.__self;
             ctx = this.domElem;
         }
 
+
+        var _this = this,
+            _thisId = identify(_this),
+            ctxId = identify(ctx[0]),
+            domEventsStorage = _this._domEventsStorage[ctxId] || (_this._domEventsStorage[ctxId] = {});
 
         return {
             /**
@@ -514,7 +531,28 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
              * @returns {Emitter} this
              */
             on : function(e, data, fn) {
-                ctx.on(e, selector, data, fn);
+                if(typeof e === 'object') {
+                    Object.keys(e).forEach(function(type) {
+                        this.on(type, data, e[type]);
+                    }, this);
+                } else {
+                    if(arguments.length === 2) {
+                        fn = data;
+                        data = undef;
+                    }
+
+                    var wrappedFn;
+                    if(entityCls) {
+                        var fnId = identify(fn) + _thisId;
+                        (domEventsStorage[e] || (domEventsStorage[e] = {}))[fnId] = wrappedFn = function(e) {
+                            e.bemTarget = $(e.currentTarget).bem(entityCls);
+                            fn.call(_this, e);
+                        };
+                    }
+
+                    ctx.on(e, selector, data, wrappedFn || fn);
+                }
+
                 return this;
             },
 
@@ -525,7 +563,21 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
              * @returns {Emitter} this
              */
             un : function(e, fn) {
-                ctx.off(e, selector, fn);
+                if(typeof e === 'object') {
+                    Object.keys(e).forEach(function(type) {
+                        this.un(type, e[type]);
+                    }, this);
+                } else {
+                    var wrappedFn;
+                    if(entityCls) {
+                        var fnId = identify(fn) + _thisId;
+                        wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
+                        wrappedFn && (domEventsStorage[e][fnId] = null);
+                    }
+
+                    ctx.off(e, selector, wrappedFn || fn);
+                }
+
                 return this;
             }
         };
@@ -1303,12 +1355,12 @@ var Elem = inherit([BEM.Elem, BemDomEntity], /** @lends Elem.prototype */{
 
 /**
  * Returns a block on a DOM element and initializes it if necessary
- * @param {Function} Block Block
- * @param {Object} params Block parameters
- * @returns {BEMDOM}
+ * @param {Function} BemDomEntity entity
+ * @param {Object} params entity parameters
+ * @returns {BemDomEntity}
  */
-$.fn.bem = function(Block, params) {
-    return initEntity(Block.getName(), this, params, true)._init();
+$.fn.bem = function(BemDomEntity, params) {
+    return initEntity(BemDomEntity.getEntityName(), this, params, true)._init();
 };
 
 $(function() {
