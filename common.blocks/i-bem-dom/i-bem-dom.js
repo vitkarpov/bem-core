@@ -28,6 +28,8 @@ modules.define(
 var undef,
     win = $(window),
     doc = $(document),
+    winId = identify(window),
+    docId = identify(document),
 
     /**
      * Storage for DOM elements by unique key
@@ -481,9 +483,10 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
 
     /**
      * Returns an manager to bind and unbind events for particular context
-     * @param {Function|String|Object|BemDomEntity|document|window} [ctx=this.domElem] context to bind,
+     * @param {Function|String|Object|document|window} [ctx=this.domElem] context to bind,
      *     can be BEM-entity class, instance, element name or description (elem, modName, modVal), document or window
      * @returns {DomEventManager}
+     * @todo think about passing BemDomEntity as a context
      */
     domEvents : function(ctx) {
         var selector = '',
@@ -501,21 +504,22 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                 if(typeOfCtx === 'string') {
                     ctx = { elem : elemName = ctx };
                 } else if(typeOfCtx === 'object') {
-                    typeof typeOfCtx.elem === 'function' && (elemName = ctx.elem.getName());
+                    elemName = typeof ctx.elem === 'function'?
+                        ctx.elem.getName() :
+                        ctx.elem;
                 } else {
                     ctx = { elem : elemName = ctx.getName() };
                 }
 
-                var entityName = buildClass(this.__self._blockName, elemName, ctx.modName, ctx.modVal);
+                var entityName = buildClass(this.__self._blockName, elemName);
                 entityCls = getEntityCls(entityName);
-                selector = '.' + entityName;
+                selector = '.' + entityName + buildModPostfix(ctx.modName, ctx.modVal);
                 ctx = this.domElem;
             }
         } else {
             entityCls = this.__self;
             ctx = this.domElem;
         }
-
 
         var _this = this,
             _thisId = identify(_this),
@@ -575,6 +579,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                         wrappedFn && (domEventsStorage[e][fnId] = null);
                     }
 
+                    // TODO: unbind only own handlers
                     ctx.off(e, selector, wrappedFn || fn);
                 }
 
@@ -608,120 +613,6 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
             }, this);
 
         return this;
-    },
-
-    /**
-     * Adds an event handler to the document
-     * @protected
-     * @param {String|Object} event Event name or event object
-     * @param {Object} [data] Additional event data
-     * @param {Function} fn Handler function, which will be executed in the entity's context
-     * @returns {BemDomEntity} this
-     */
-    bindToDoc : function(event, data, fn) {
-        this._needSpecialUnbind = true;
-        return this.bindToDomElem(doc, event, data, fn);
-    },
-
-    /**
-     * Adds an event handler to the window
-     * @protected
-     * @param {String|Object} event Event name or event object
-     * @param {Object} [data] Additional event data
-     * @param {Function} fn Handler function, which will be executed in the entity's context
-     * @returns {BemDomEntity} this
-     */
-    bindToWin : function(event, data, fn) {
-        this._needSpecialUnbind = true;
-        return this.bindToDomElem(win, event, data, fn);
-    },
-
-    /**
-     * Adds an event handler to the main DOM elements of entity
-     * @protected
-     * @param {String|Object} event Event name or event object
-     * @param {Object} [data] Additional event data
-     * @param {Function} fn Handler function, which will be executed in the entity's context
-     * @returns {BemDomEntity} this
-     */
-    bindTo : function(event, data, fn) {
-        if(functions.isFunction(data)) {
-            fn = data;
-            data = undef;
-        }
-
-        return this.bindToDomElem(this.domElem, event, data, fn);
-    },
-
-    /**
-    * Removes event handlers from any DOM element
-    * @protected
-    * @param {jQuery} domElem DOM element where the event was being listened for
-    * @param {String|Object} event Event name or event object
-    * @param {Function} [fn] Handler function
-    * @returns {BemDomEntity} this
-    */
-    unbindFromDomElem : function(domElem, event, fn) {
-        if(typeof event === 'string') {
-            event = this._buildDomEventName(event);
-            fn?
-                domElem.unbind(event, fn) :
-                domElem.unbind(event);
-        } else {
-            objects.each(event, function(fn, event) {
-                this.unbindFromDomElem(domElem, event, fn);
-            }, this);
-        }
-
-        return this;
-    },
-
-    /**
-    * Removes event handler from document
-    * @protected
-    * @param {String|Object} event Event name or event object
-    * @param {Function} [fn] Handler function
-    * @returns {BemDomEntity} this
-    */
-    unbindFromDoc : function(event, fn) {
-        return this.unbindFromDomElem(doc, event, fn);
-    },
-
-    /**
-    * Removes event handler from window
-    * @protected
-    * @param {String|Object} event Event name or event object
-    * @param {Function} [fn] Handler function
-    * @returns {BemDomEntity} this
-    */
-    unbindFromWin : function(event, fn) {
-        return this.unbindFromDomElem(win, event, fn);
-    },
-
-    /**
-    * Removes event handlers from the main DOM elements of entity
-    * @protected
-    * @param {String|Object} [event] Event name or event object
-    * @param {Function} [fn] Handler function
-    * @returns {BemDomEntity} this
-    */
-    unbindFrom : function(event, fn) {
-        return this.unbindFromDomElem(this.domElem, event, fn);
-    },
-
-    /**
-     * Builds a full name for an event
-     * @private
-     * @param {String} event Event name
-     * @returns {String}
-     */
-    _buildDomEventName : function(event) {
-        var uniq = '.' + this._uniqId;
-        return event.indexOf(' ') > 1?
-            event.split(' ').map(function(e) {
-                return e + uniq;
-            }, this).join(' ') :
-            event + uniq;
     },
 
     _ctxEmit : function(e, data) {
@@ -827,11 +718,16 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @private
      */
     _destruct : function() {
-        if(this._needSpecialUnbind) {
-            var eventNs = '.' + this._uniqId;
-            doc.off(eventNs);
-            win.off(eventNs);
-        }
+        // TODO: unbind document, window handlers on destruct
+        //[winId, docId].forEach(function(ctxId) {
+        //    if(this._domEventsStorage[ctxId]) {
+        //    }
+        //}, this);
+        //if(this._needSpecialUnbind) {
+        //    var eventNs = '.' + this._uniqId;
+        //    doc.off(eventNs);
+        //    win.off(eventNs);
+        //}
 
         this.__base();
 
