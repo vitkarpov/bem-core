@@ -26,10 +26,10 @@ modules.define(
         dom) {
 
 var undef,
-    win = $(window),
-    doc = $(document),
-    winId = identify(window),
-    docId = identify(document),
+    winNode = window,
+    docNode = document,
+    win = $(winNode),
+    doc = $(docNode),
 
     /**
      * Storage for DOM elements by unique key
@@ -495,9 +495,9 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
         if(arguments.length) {
             var typeOfCtx = typeof ctx;
             if(ctx.jquery && ctx.length === 1) {
-                if(ctx[0] !== window && ctx[0] !== document)
+                if(ctx[0] !== winNode && ctx[0] !== docNode)
                     throw Error('DOM-events: jQuery-chain can contain only document or window');
-            } else if(ctx === window || ctx === document) {
+            } else if(ctx === winNode || ctx === docNode) {
                 ctx = $(ctx);
             } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
                 var elemName;
@@ -545,14 +545,15 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                         data = undef;
                     }
 
-                    var wrappedFn;
-                    if(entityCls) {
-                        var fnId = identify(fn) + _thisId;
-                        (domEventsStorage[e] || (domEventsStorage[e] = {}))[fnId] = wrappedFn = function(e) {
+                    var wrappedFn,
+                        fnId = identify(fn) + _thisId;
+
+                    (domEventsStorage[e] || (domEventsStorage[e] = {}))[fnId] = entityCls?
+                        wrappedFn = function(e) {
                             e.bemTarget = $(e.currentTarget).bem(entityCls);
                             fn.call(_this, e);
-                        };
-                    }
+                        } :
+                        fn;
 
                     ctx.on(e, selector, data, wrappedFn || fn);
                 }
@@ -579,40 +580,26 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                         wrappedFn && (domEventsStorage[e][fnId] = null);
                     }
 
-                    // TODO: unbind only own handlers
-                    ctx.off(e, selector, wrappedFn || fn);
+                    var argsLen = arguments.length;
+                    if(!argsLen) {
+                        Object.keys(domEventsStorage).forEach(this._unbindByEvent);
+                    } else if(argsLen === 1) {
+                        this._unbindByEvent(e);
+                    } else {
+                        ctx.off(e, selector, wrappedFn || fn);
+                    }
                 }
 
                 return this;
+            },
+
+            _unbindByEvent : function(e) {
+                var fnsStorage = domEventsStorage[e];
+                fnsStorage && Object.keys(fnsStorage).forEach(function(fnId) {
+                    ctx.off(e, selector, fnsStorage[fnId]);
+                });
             }
         };
-    },
-
-    /**
-     * Adds an event handler for any DOM element
-     * @protected
-     * @param {jQuery} domElem DOM element where the event will be listened for
-     * @param {String|Object} event Event name or event object
-     * @param {Object} [data] Additional event data
-     * @param {Function} fn Handler function, which will be executed in the entity's context
-     * @returns {BemDomEntity} this
-     */
-    bindToDomElem : function(domElem, event, data, fn) {
-        if(functions.isFunction(data)) {
-            fn = data;
-            data = undef;
-        }
-
-        fn?
-            domElem.bind(
-                this._buildDomEventName(event),
-                data,
-                $.proxy(fn, this)) :
-            objects.each(event, function(fn, event) {
-                this.bindToDomElem(domElem, event, data, fn);
-            }, this);
-
-        return this;
     },
 
     _ctxEmit : function(e, data) {
@@ -718,16 +705,9 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @private
      */
     _destruct : function() {
-        // TODO: unbind document, window handlers on destruct
-        //[winId, docId].forEach(function(ctxId) {
-        //    if(this._domEventsStorage[ctxId]) {
-        //    }
-        //}, this);
-        //if(this._needSpecialUnbind) {
-        //    var eventNs = '.' + this._uniqId;
-        //    doc.off(eventNs);
-        //    win.off(eventNs);
-        //}
+        [docNode, winNode].forEach(function(node) {
+            this.domEvents(node).un();
+        }, this);
 
         this.__base();
 
