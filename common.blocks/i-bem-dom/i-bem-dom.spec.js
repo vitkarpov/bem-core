@@ -1042,6 +1042,10 @@ describe('i-bem-dom', function() {
             spy5 = sinon.spy();
         });
 
+        afterEach(function() {
+            BEMDOM.destruct(BEMDOM.scope, true);
+        });
+
         describe('on instance events', function() {
             describe('block domElem events', function() {
                 beforeEach(function() {
@@ -1364,6 +1368,10 @@ describe('i-bem-dom', function() {
         });
 
         describe('live events', function() {
+            function initDom(bemjson) {
+                return createDomNode(bemjson).appendTo(BEMDOM.scope);
+            }
+
             describe('block domElem events', function() {
                 beforeEach(function() {
                     Block1 = BEMDOM.declBlock('block1', {}, {
@@ -1372,7 +1380,7 @@ describe('i-bem-dom', function() {
                                 .on('click', spy1)
                                 .on('click', spy2)
                                 .on('click', data, spy3)
-                                .on({'click' : spy4}, data);
+                                .on({ 'click' : spy4 }, data);
                         }
                     });
 
@@ -1383,7 +1391,7 @@ describe('i-bem-dom', function() {
                         }
                     });
 
-                    block1 = createDomNode({
+                    block1 = initDom({
                         block : 'block1',
                         mix : { block : 'block2' }
                     }).bem(Block1);
