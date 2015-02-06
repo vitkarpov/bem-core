@@ -67,6 +67,8 @@ var undef,
      */
     liveClassEventStorage = {},
 
+    liveDomEventsStorage = {},
+
     entities = BEM.entities,
 
     BEM_CLASS = 'i-bem',
@@ -262,6 +264,45 @@ function buildElemKey(elem) {
     }
 
     return elem.elem + buildModPostfix(elem.modName, elem.modVal);
+}
+
+function buildDomEventsParams(ctx, defCtx, defSelector, defCls) {
+    var res = {
+            entityCls : null,
+            ctx : defCtx,
+            selector : defSelector
+        };
+
+    if(ctx) {
+        var typeOfCtx = typeof ctx;
+
+        if(ctx.jquery && ctx.length === 1) {
+            if(ctx[0] !== winNode && ctx[0] !== docNode)
+                throw Error('DOM-events: jQuery-chain can contain only document or window');
+            res.ctx = ctx;
+        } else if(ctx === winNode || ctx === docNode) {
+            res.ctx = $(ctx);
+        } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
+            var elemName;
+            if(typeOfCtx === 'string') {
+                ctx = { elem : elemName = ctx };
+            } else if(typeOfCtx === 'object') {
+                elemName = typeof ctx.elem === 'function'?
+                    ctx.elem.getName() :
+                    ctx.elem;
+            } else {
+                ctx = { elem : elemName = ctx.getName() };
+            }
+
+            var entityName = buildClass(defCls._blockName, elemName);
+            res.entityCls = getEntityCls(entityName);
+            res.selector = '.' + entityName + buildModPostfix(ctx.modName, ctx.modVal);
+        }
+    } else {
+        res.entityCls = defCls;
+    }
+
+    return res;
 }
 
 /**
@@ -489,41 +530,10 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @todo think about passing BemDomEntity as a context
      */
     domEvents : function(ctx) {
-        var selector = '',
-            entityCls;
-
-        if(arguments.length) {
-            var typeOfCtx = typeof ctx;
-            if(ctx.jquery && ctx.length === 1) {
-                if(ctx[0] !== winNode && ctx[0] !== docNode)
-                    throw Error('DOM-events: jQuery-chain can contain only document or window');
-            } else if(ctx === winNode || ctx === docNode) {
-                ctx = $(ctx);
-            } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
-                var elemName;
-                if(typeOfCtx === 'string') {
-                    ctx = { elem : elemName = ctx };
-                } else if(typeOfCtx === 'object') {
-                    elemName = typeof ctx.elem === 'function'?
-                        ctx.elem.getName() :
-                        ctx.elem;
-                } else {
-                    ctx = { elem : elemName = ctx.getName() };
-                }
-
-                var entityName = buildClass(this.__self._blockName, elemName);
-                entityCls = getEntityCls(entityName);
-                selector = '.' + entityName + buildModPostfix(ctx.modName, ctx.modVal);
-                ctx = this.domElem;
-            }
-        } else {
-            entityCls = this.__self;
-            ctx = this.domElem;
-        }
-
-        var _this = this,
+        var params = buildDomEventsParams(ctx, this.domElem, '', this.__self),
+            _this = this,
             _thisId = identify(_this),
-            ctxId = identify(ctx[0]),
+            ctxId = identify(params.ctx[0]),
             domEventsStorage = _this._domEventsStorage[ctxId] || (_this._domEventsStorage[ctxId] = {});
 
         return {
@@ -548,14 +558,14 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                     var wrappedFn,
                         fnId = identify(fn) + _thisId;
 
-                    (domEventsStorage[e] || (domEventsStorage[e] = {}))[fnId] = entityCls?
+                    (domEventsStorage[e] || (domEventsStorage[e] = {}))[fnId] = params.entityCls?
                         wrappedFn = function(e) {
-                            e.bemTarget = $(e.currentTarget).bem(entityCls);
+                            e.bemTarget = $(e.currentTarget).bem(params.entityCls);
                             fn.call(_this, e);
                         } :
                         fn;
 
-                    ctx.on(e, selector, data, wrappedFn || fn);
+                    params.ctx.on(e, params.selector, data, wrappedFn || fn);
                 }
 
                 return this;
@@ -574,7 +584,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                     }, this);
                 } else {
                     var wrappedFn;
-                    if(entityCls) {
+                    if(params.entityCls) {
                         var fnId = identify(fn) + _thisId;
                         wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
                         wrappedFn && (domEventsStorage[e][fnId] = null);
@@ -586,7 +596,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                     } else if(argsLen === 1) {
                         this._unbindByEvent(e);
                     } else {
-                        ctx.off(e, selector, wrappedFn || fn);
+                        params.ctx.off(e, params.selector, wrappedFn || fn);
                     }
                 }
 
@@ -596,8 +606,9 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
             _unbindByEvent : function(e) {
                 var fnsStorage = domEventsStorage[e];
                 fnsStorage && Object.keys(fnsStorage).forEach(function(fnId) {
-                    ctx.off(e, selector, fnsStorage[fnId]);
+                    params.ctx.off(e, params.selector, fnsStorage[fnId]);
                 });
+                domEventsStorage[e] = null;
             }
         };
     },
@@ -751,6 +762,102 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      */
     _buildCtxEventName : function(e) {
         return this.getEntityName() + ':' + e;
+    },
+
+    /**
+     * Returns an manager to bind and unbind events for particular context
+     * @param {Function|String|Object|document|window} [ctx=document] context to bind,
+     *     can be BEM-entity class, instance, element name or description (elem, modName, modVal), document or window
+     * @returns {DomEventManager}
+     * @todo think about passing BemDomEntity as a context
+     */
+    domEvents : function(ctx) {
+        var entitySelector = this.buildSelector(),
+            params = buildDomEventsParams(ctx, doc, entitySelector, this),
+            _this = this,
+            _thisId = identify(_this),
+            ctxId = identify(params.ctx[0]),
+            clsDomEventsStorage = liveDomEventsStorage[_thisId] || (liveDomEventsStorage[_thisId] = {}),
+            domEventsStorage = clsDomEventsStorage[ctxId] || (clsDomEventsStorage[ctxId] = {});
+
+        return {
+            /**
+             * Adds an event handler
+             * @param {String} e Event type
+             * @param {Object} [data] Additional data that the handler gets as e.data
+             * @param {Function} fn Handler
+             * @returns {Emitter} this
+             */
+            on : function(e, data, fn) {
+                if(typeof e === 'object') {
+                    Object.keys(e).forEach(function(type) {
+                        this.on(type, data, e[type]);
+                    }, this);
+                } else {
+                    if(arguments.length === 2) {
+                        fn = data;
+                        data = undef;
+                    }
+
+                    var wrappedFn,
+                        fnId = identify(fn) + _thisId;
+
+                    (domEventsStorage[e] || (domEventsStorage[e] = {}))[fnId] = params.entityCls?
+                        wrappedFn = function(e) {
+                            var entityDomNode = $(e.target).closest(entitySelector);
+                            if(entityDomNode[0]) {
+                                e.bemTarget = $(this).bem(params.entityCls);
+                                fn.call(entityDomNode.bem(_this), e);
+                            }
+                        } :
+                        fn;
+
+                    params.ctx.on(e, params.selector, data, wrappedFn || fn);
+                }
+
+                return this;
+            },
+
+            /**
+             * Removes event handler or handlers
+             * @param {String} [e] Event type
+             * @param {Function} [fn] Handler
+             * @returns {Emitter} this
+             */
+            un : function(e, fn) {
+                if(typeof e === 'object') {
+                    Object.keys(e).forEach(function(type) {
+                        this.un(type, e[type]);
+                    }, this);
+                } else {
+                    var wrappedFn;
+                    if(params.entityCls) {
+                        var fnId = identify(fn) + _thisId;
+                        wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
+                        wrappedFn && (domEventsStorage[e][fnId] = null);
+                    }
+
+                    var argsLen = arguments.length;
+                    if(!argsLen) {
+                        Object.keys(domEventsStorage).forEach(this._unbindByEvent);
+                    } else if(argsLen === 1) {
+                        this._unbindByEvent(e);
+                    } else {
+                        params.ctx.off(e, params.selector, wrappedFn || fn);
+                    }
+                }
+
+                return this;
+            },
+
+            _unbindByEvent : function(e) {
+                var fnsStorage = domEventsStorage[e];
+                fnsStorage && Object.keys(fnsStorage).forEach(function(fnId) {
+                    params.ctx.off(e, params.selector, fnsStorage[fnId]);
+                });
+                domEventsStorage[e] = null;
+            }
+        };
     },
 
     _liveClassBind : function(className, e, callback, invokeOnInit) {

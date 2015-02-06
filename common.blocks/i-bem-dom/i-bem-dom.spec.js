@@ -1030,7 +1030,7 @@ describe('i-bem-dom', function() {
         });
     });
 
-    describe.only('DOM events', function() {
+    describe('DOM events', function() {
         var Block1, Block2, block1, spy1, spy2, spy3, spy4, spy5,
             data = { data : 'data' };
 
@@ -1042,322 +1042,392 @@ describe('i-bem-dom', function() {
             spy5 = sinon.spy();
         });
 
-        describe('block domElem events', function() {
-            beforeEach(function() {
-                Block1 = BEMDOM.declBlock('block1', {
-                    onSetMod : {
-                        'js' : {
-                            'inited' : function() {
-                                this.domEvents()
-                                    .on('click', spy1)
-                                    .on('click', spy2)
-                                    .on('click', data, spy3)
-                                    .on({ 'click' : spy4 }, data);
-                            }
-                        }
-                    }
-                });
-
-                Block2 = BEMDOM.declBlock('block2', {
-                    onSetMod : {
-                        'js' : {
-                            'inited' : function() {
-                                this.domEvents()
-                                    .on('click', spy5);
-                            }
-                        }
-                    }
-                });
-
-                block1 = createDomNode({
-                    block : 'block1',
-                    mix : { block : 'block2', js : true }
-                }).bem(Block1);
-            });
-
-            it('should properly bind handlers', function() {
-                block1.domElem.trigger('click');
-
-                spy1.should.have.been.called;
-                spy2.should.have.been.called;
-
-                spy3.should.have.been.calledOn(block1);
-                spy3.args[0][0].bemTarget.should.be.instanceOf(Block1);
-                spy3.args[0][0].data.should.have.been.equal(data);
-                spy4.args[0][0].data.should.have.been.equal(data);
-            });
-
-            it('should properly unbind all handlers', function() {
-                block1.domEvents().un('click');
-                block1.domElem.trigger('click');
-
-                spy1.should.not.have.been.called;
-                spy2.should.not.have.been.called;
-            });
-
-            it('should properly unbind specified handler', function() {
-                block1.domEvents().un('click', spy1);
-                block1.domEvents().un({ 'click' : spy2 });
-                block1.domElem.trigger('click');
-
-                spy1.should.not.have.been.called;
-                spy2.should.not.have.been.called;
-                spy3.should.have.been.called;
-            });
-
-            it('should unbind only own handlers', function() {
-                block1.domEvents().un('click');
-                block1.domElem.trigger('click');
-
-                spy1.should.not.have.been.called;
-                spy2.should.not.have.been.called;
-
-                spy5.should.have.been.called;
-            });
-        });
-
-        describe('block elems events', function() {
-            ['string', 'Class'].forEach(function(elemType) {
-                var elem;
-
-                describe('elem as ' + elemType, function() {
-                    beforeEach(function() {
-                        elem = elemType === 'string'?
-                            'e1' :
-                            BEMDOM.declElem('block', 'e1');
-                    });
-
-                    var Elem1, Elem2;
-
-                    beforeEach(function() {
-                        Block1 = BEMDOM.declBlock('block', {
-                            onSetMod : {
-                                'js' : {
-                                    'inited' : function() {
-                                        this.domEvents(elem)
-                                            .on('click', spy1)
-                                            .on('click', spy2)
-                                            .on('click', data, spy3)
-                                            .on({ 'click' : spy4 }, data);
-
-                                        this.domEvents('e2').on('click', spy5);
-                                    }
+        describe('on instance events', function() {
+            describe('block domElem events', function() {
+                beforeEach(function() {
+                    Block1 = BEMDOM.declBlock('block1', {
+                        onSetMod : {
+                            'js' : {
+                                'inited' : function() {
+                                    this.domEvents()
+                                        .on('click', spy1)
+                                        .on('click', spy2)
+                                        .on('click', data, spy3)
+                                        .on({ 'click' : spy4 }, data);
                                 }
                             }
-                        });
-
-                        Elem1 = elemType === 'string'?
-                            BEMDOM.declElem('block', 'e1') :
-                            elem;
-                        Elem2 = BEMDOM.declElem('block', 'e2');
-
-                        block1 = createDomNode({ block : 'block', content : [{ elem : 'e1' }, { elem : 'e2' }] })
-                            .bem(Block1);
+                        }
                     });
 
-                    it('should properly bind handlers', function() {
-                        block1.elem(elem).domElem.trigger('click');
-
-                        spy1.should.have.been.called;
-                        spy1.should.have.been.calledOn(block1);
-
-                        spy2.should.have.been.called;
-
-                        spy3.should.have.been.called;
-                        spy3.args[0][0].data.should.have.been.equal(data);
-                        spy3.args[0][0].bemTarget.should.be.instanceOf(Elem1);
-
-                        spy4.should.have.been.called;
-                        spy4.args[0][0].data.should.have.been.equal(data);
-
-                        spy5.should.not.have.been.called;
-                    });
-
-                    it('should properly unbind all handlers', function() {
-                        block1.domEvents(elem).un('click');
-                        block1.elem(elem).domElem.trigger('click');
-
-                        spy1.should.not.have.been.called;
-                        spy2.should.not.have.been.called;
-                        spy3.should.not.have.been.called;
-                    });
-
-                    it('should properly unbind specified handler', function() {
-                        block1.domEvents(elem).un('click', spy2);
-                        block1.elem(elem).domElem.trigger('click');
-
-                        spy1.should.have.been.called;
-                        spy2.should.not.have.been.called;
-                        spy3.should.have.been.called;
-                    });
-                });
-
-                describe('elem as ' + elemType + ', modName, modVal', function() {
-                    beforeEach(function() {
-                        Block1 = BEMDOM.declBlock('block', {
-                            onSetMod : {
-                                'js' : {
-                                    'inited' : function() {
-                                        this.domEvents({ elem : elem })
-                                            .on('click', spy1);
-                                        this.domEvents({ elem : elem, modName : 'm1', modVal : 'v1' })
-                                            .on('click', spy2)
-                                            .on('click', spy3);
-                                    }
+                    Block2 = BEMDOM.declBlock('block2', {
+                        onSetMod : {
+                            'js' : {
+                                'inited' : function() {
+                                    this.domEvents()
+                                        .on('click', spy5);
                                 }
                             }
+                        }
+                    });
+
+                    block1 = createDomNode({
+                        block : 'block1',
+                        mix : { block : 'block2', js : true }
+                    }).bem(Block1);
+                });
+
+                it('should properly bind handlers', function() {
+                    block1.domElem.trigger('click');
+
+                    spy1.should.have.been.called;
+                    spy2.should.have.been.called;
+
+                    spy3.should.have.been.calledOn(block1);
+                    spy3.args[0][0].bemTarget.should.be.instanceOf(Block1);
+                    spy3.args[0][0].data.should.have.been.equal(data);
+                    spy4.args[0][0].data.should.have.been.equal(data);
+                });
+
+                it('should properly unbind all handlers', function() {
+                    block1.domEvents().un('click');
+                    block1.domElem.trigger('click');
+
+                    spy1.should.not.have.been.called;
+                    spy2.should.not.have.been.called;
+                });
+
+                it('should properly unbind specified handler', function() {
+                    block1.domEvents().un('click', spy1);
+                    block1.domEvents().un({'click' : spy2});
+                    block1.domElem.trigger('click');
+
+                    spy1.should.not.have.been.called;
+                    spy2.should.not.have.been.called;
+                    spy3.should.have.been.called;
+                });
+
+                it('should unbind only own handlers', function() {
+                    block1.domEvents().un('click');
+                    block1.domElem.trigger('click');
+
+                    spy1.should.not.have.been.called;
+                    spy2.should.not.have.been.called;
+
+                    spy5.should.have.been.called;
+                });
+            });
+
+            describe('block elems events', function() {
+                ['string', 'Class'].forEach(function(elemType) {
+                    var elem;
+
+                    describe('elem as ' + elemType, function() {
+                        beforeEach(function() {
+                            elem = elemType === 'string'?
+                                'e1' :
+                                BEMDOM.declElem('block', 'e1');
                         });
 
-                        block1 = createDomNode({
-                            block : 'block',
-                            content : [
-                                { elem : 'e1' },
-                                { elem : 'e1', elemMods : { m1 : 'v1' } }
-                            ]
-                        }).bem(Block1);
+                        var Elem1, Elem2;
+
+                        beforeEach(function() {
+                            Block1 = BEMDOM.declBlock('block', {
+                                onSetMod : {
+                                    'js' : {
+                                        'inited' : function() {
+                                            this.domEvents(elem)
+                                                .on('click', spy1)
+                                                .on('click', spy2)
+                                                .on('click', data, spy3)
+                                                .on({'click' : spy4}, data);
+
+                                            this.domEvents('e2').on('click', spy5);
+                                        }
+                                    }
+                                }
+                            });
+
+                            Elem1 = elemType === 'string'?
+                                BEMDOM.declElem('block', 'e1') :
+                                elem;
+                            Elem2 = BEMDOM.declElem('block', 'e2');
+
+                            block1 = createDomNode({block : 'block', content : [{elem : 'e1'}, {elem : 'e2'}]})
+                                .bem(Block1);
+                        });
+
+                        it('should properly bind handlers', function() {
+                            block1.elem(elem).domElem.trigger('click');
+
+                            spy1.should.have.been.called;
+                            spy1.should.have.been.calledOn(block1);
+
+                            spy2.should.have.been.called;
+
+                            spy3.should.have.been.called;
+                            spy3.args[0][0].data.should.have.been.equal(data);
+                            spy3.args[0][0].bemTarget.should.be.instanceOf(Elem1);
+
+                            spy4.should.have.been.called;
+                            spy4.args[0][0].data.should.have.been.equal(data);
+
+                            spy5.should.not.have.been.called;
+                        });
+
+                        it('should properly unbind all handlers', function() {
+                            block1.domEvents(elem).un('click');
+                            block1.elem(elem).domElem.trigger('click');
+
+                            spy1.should.not.have.been.called;
+                            spy2.should.not.have.been.called;
+                            spy3.should.not.have.been.called;
+                        });
+
+                        it('should properly unbind specified handler', function() {
+                            block1.domEvents(elem).un('click', spy2);
+                            block1.elem(elem).domElem.trigger('click');
+
+                            spy1.should.have.been.called;
+                            spy2.should.not.have.been.called;
+                            spy3.should.have.been.called;
+                        });
                     });
 
-                    it('should properly bind handlers', function() {
-                        block1.elem({ elem : 'e1', modName : 'm1', modVal : 'v1' }).domElem.trigger('click');
+                    describe('elem as ' + elemType + ', modName, modVal', function() {
+                        beforeEach(function() {
+                            Block1 = BEMDOM.declBlock('block', {
+                                onSetMod : {
+                                    'js' : {
+                                        'inited' : function() {
+                                            this.domEvents({elem : elem})
+                                                .on('click', spy1);
+                                            this.domEvents({elem : elem, modName : 'm1', modVal : 'v1'})
+                                                .on('click', spy2)
+                                                .on('click', spy3);
+                                        }
+                                    }
+                                }
+                            });
 
-                        spy1.should.have.been.called;
-                        spy2.should.have.been.called;
+                            block1 = createDomNode({
+                                block : 'block',
+                                content : [
+                                    {elem : 'e1'},
+                                    {elem : 'e1', elemMods : {m1 : 'v1'}}
+                                ]
+                            }).bem(Block1);
+                        });
 
-                        block1.elem('e1').domElem.trigger('click');
+                        it('should properly bind handlers', function() {
+                            block1.elem({elem : 'e1', modName : 'm1', modVal : 'v1'}).domElem.trigger('click');
 
-                        spy1.should.have.been.calledTwice;
-                        spy2.should.have.been.calledOnce;
+                            spy1.should.have.been.called;
+                            spy2.should.have.been.called;
+
+                            block1.elem('e1').domElem.trigger('click');
+
+                            spy1.should.have.been.calledTwice;
+                            spy2.should.have.been.calledOnce;
+                        });
+
+                        it('should properly unbind all handlers', function() {
+                            block1.domEvents({elem : elem, modName : 'm1', modVal : 'v1'}).un('click');
+
+                            block1.elem({elem : 'e1', modName : 'm1', modVal : 'v1'}).domElem.trigger('click');
+
+                            spy1.should.have.been.called;
+                            spy2.should.not.have.been.called;
+                        });
+
+                        it('should properly unbind specified handler', function() {
+                            block1.domEvents({elem : elem, modName : 'm1', modVal : 'v1'}).un('click', spy2);
+
+                            block1.elem({elem : 'e1', modName : 'm1', modVal : 'v1'}).domElem.trigger('click');
+
+                            spy1.should.have.been.called;
+                            spy2.should.not.have.been.called;
+                            spy3.should.have.been.called;
+                        });
                     });
+                });
+            });
 
-                    it('should properly unbind all handlers', function() {
-                        block1.domEvents({ elem : elem, modName : 'm1', modVal : 'v1' }).un('click');
+            describe('document events', function() {
+                beforeEach(function() {
+                    Block1 = BEMDOM.declBlock('block', {
+                        onSetMod : {
+                            'js' : {
+                                'inited' : function() {
+                                    this.domEvents(document)
+                                        .on('click', spy1)
+                                        .on('click', spy2);
 
-                        block1.elem({ elem : 'e1', modName : 'm1', modVal : 'v1' }).domElem.trigger('click');
-
-                        spy1.should.have.been.called;
-                        spy2.should.not.have.been.called;
+                                    this.domEvents(BEMDOM.doc)
+                                        .on('click', data, spy3)
+                                        .on({'click' : spy4}, data);
+                                }
+                            }
+                        }
                     });
+                    block1 = BEMDOM.init(BEMHTML.apply({block : 'block'})).bem(Block1);
+                });
 
-                    it('should properly unbind specified handler', function() {
-                        block1.domEvents({ elem : elem, modName : 'm1', modVal : 'v1' }).un('click', spy2);
+                it('should properly bind handlers', function() {
+                    BEMDOM.doc.trigger('click');
 
-                        block1.elem({ elem : 'e1', modName : 'm1', modVal : 'v1' }).domElem.trigger('click');
+                    spy1.should.have.been.called;
+                    spy2.should.have.been.called;
 
-                        spy1.should.have.been.called;
-                        spy2.should.not.have.been.called;
-                        spy3.should.have.been.called;
+                    spy3.args[0][0].data.should.have.been.equal(data);
+                    spy4.args[0][0].data.should.have.been.equal(data);
+                });
+
+                it('should properly unbind all handlers', function() {
+                    block1.domEvents(document).un('click');
+                    BEMDOM.doc.trigger('click');
+
+                    spy1.should.not.have.been.called;
+                    spy2.should.not.have.been.called;
+                });
+
+                it('should properly unbind specified handler', function() {
+                    block1.domEvents($(document)).un('click', spy1);
+                    BEMDOM.doc.trigger('click');
+
+                    spy1.should.not.have.been.called;
+                    spy2.should.have.been.called;
+                });
+
+                it('should properly unbind all handlers on block destruct', function() {
+                    BEMDOM.destruct(block1.domElem);
+                    BEMDOM.doc.trigger('click');
+
+                    spy1.should.not.have.been.called;
+                    spy2.should.not.have.been.called;
+                });
+            });
+
+            describe('window events', function() {
+                beforeEach(function() {
+                    Block1 = BEMDOM.declBlock('block', {
+                        onSetMod : {
+                            'js' : {
+                                'inited' : function() {
+                                    this.domEvents(window)
+                                        .on('resize', spy1)
+                                        .on('resize', spy2);
+
+                                    this.domEvents($(window))
+                                        .on('resize', data, spy3)
+                                        .on({'resize' : spy4}, data);
+                                }
+                            }
+                        }
                     });
+                    block1 = createDomNode({block : 'block'}).bem(Block1);
+                });
+
+                it('should properly bind handlers', function() {
+                    BEMDOM.win.trigger('resize');
+
+                    spy1.should.have.been.called;
+                    spy2.should.have.been.called;
+
+                    spy3.args[0][0].data.should.have.been.equal(data);
+                    spy4.args[0][0].data.should.have.been.equal(data);
+                });
+
+                it('should properly unbind all handlers', function() {
+                    block1.domEvents(window).un('resize');
+                    BEMDOM.win.trigger('resize');
+
+                    spy1.should.not.have.been.called;
+                    spy2.should.not.have.been.called;
+                });
+
+                it('should properly unbind specified handler', function() {
+                    block1.domEvents($(window)).un('resize', spy1);
+                    BEMDOM.win.trigger('resize');
+
+                    spy1.should.not.have.been.called;
+                    spy2.should.have.been.called;
+                });
+
+                it('should properly unbind all handlers on block destruct', function() {
+                    BEMDOM.destruct(block1.domElem);
+                    BEMDOM.win.trigger('resize');
+
+                    spy1.should.not.have.been.called;
+                    spy2.should.not.have.been.called;
                 });
             });
         });
 
-        describe('document events', function() {
-            beforeEach(function() {
-                Block1 = BEMDOM.declBlock('block', {
-                    onSetMod : {
-                        'js' : {
-                            'inited' : function() {
-                                this.domEvents(document)
-                                    .on('click', spy1)
-                                    .on('click', spy2);
-
-                                this.domEvents(BEMDOM.doc)
-                                    .on('click', data, spy3)
-                                    .on({ 'click' : spy4 }, data);
-                            }
+        describe('live events', function() {
+            describe('block domElem events', function() {
+                beforeEach(function() {
+                    Block1 = BEMDOM.declBlock('block1', {}, {
+                        live : function() {
+                            this.domEvents()
+                                .on('click', spy1)
+                                .on('click', spy2)
+                                .on('click', data, spy3)
+                                .on({'click' : spy4}, data);
                         }
-                    }
-                });
-                block1 = BEMDOM.init(BEMHTML.apply({ block : 'block' })).bem(Block1);
-            });
+                    });
 
-            it('should properly bind handlers', function() {
-                BEMDOM.doc.trigger('click');
-
-                spy1.should.have.been.called;
-                spy2.should.have.been.called;
-
-                spy3.args[0][0].data.should.have.been.equal(data);
-                spy4.args[0][0].data.should.have.been.equal(data);
-            });
-
-            it('should properly unbind all handlers', function() {
-                block1.domEvents(document).un('click');
-                BEMDOM.doc.trigger('click');
-
-                spy1.should.not.have.been.called;
-                spy2.should.not.have.been.called;
-            });
-
-            it('should properly unbind specified handler', function() {
-                block1.domEvents($(document)).un('click', spy1);
-                BEMDOM.doc.trigger('click');
-
-                spy1.should.not.have.been.called;
-                spy2.should.have.been.called;
-            });
-
-            it('should properly unbind all handlers on block destruct', function() {
-                BEMDOM.destruct(block1.domElem);
-                BEMDOM.doc.trigger('click');
-
-                spy1.should.not.have.been.called;
-                spy2.should.not.have.been.called;
-            });
-        });
-
-        describe('window events', function() {
-            beforeEach(function() {
-                Block1 = BEMDOM.declBlock('block', {
-                    onSetMod : {
-                        'js' : {
-                            'inited' : function() {
-                                this.domEvents(window)
-                                    .on('resize', spy1)
-                                    .on('resize', spy2);
-
-                                this.domEvents($(window))
-                                    .on('resize', data, spy3)
-                                    .on({ 'resize' : spy4 }, data);
-                            }
+                    Block2 = BEMDOM.declBlock('block2', {}, {
+                        live : function() {
+                            this.domEvents()
+                                .on('click', spy5);
                         }
-                    }
+                    });
+
+                    block1 = createDomNode({
+                        block : 'block1',
+                        mix : { block : 'block2' }
+                    }).bem(Block1);
                 });
-                block1 = createDomNode({ block : 'block' }).bem(Block1);
-            });
 
-            it('should properly bind handlers', function() {
-                BEMDOM.win.trigger('resize');
+                it.only('should properly bind handlers', function() {
+                    block1.domElem.trigger('click');
 
-                spy1.should.have.been.called;
-                spy2.should.have.been.called;
+                    spy1.should.have.been.called;
+                    //spy2.should.have.been.called;
+                    //
+                    //spy3.should.have.been.calledOn(block1);
+                    //spy3.args[0][0].bemTarget.should.be.instanceOf(Block1);
+                    //spy3.args[0][0].data.should.have.been.equal(data);
+                    //spy4.args[0][0].data.should.have.been.equal(data);
+                });
 
-                spy3.args[0][0].data.should.have.been.equal(data);
-                spy4.args[0][0].data.should.have.been.equal(data);
-            });
+                it('should properly unbind all handlers', function() {
+                    block1.domEvents().un('click');
+                    block1.domElem.trigger('click');
 
-            it('should properly unbind all handlers', function() {
-                block1.domEvents(window).un('resize');
-                BEMDOM.win.trigger('resize');
+                    spy1.should.not.have.been.called;
+                    spy2.should.not.have.been.called;
+                });
 
-                spy1.should.not.have.been.called;
-                spy2.should.not.have.been.called;
-            });
+                it('should properly unbind specified handler', function() {
+                    block1.domEvents().un('click', spy1);
+                    block1.domEvents().un({'click' : spy2});
+                    block1.domElem.trigger('click');
 
-            it('should properly unbind specified handler', function() {
-                block1.domEvents($(window)).un('resize', spy1);
-                BEMDOM.win.trigger('resize');
+                    spy1.should.not.have.been.called;
+                    spy2.should.not.have.been.called;
+                    spy3.should.have.been.called;
+                });
 
-                spy1.should.not.have.been.called;
-                spy2.should.have.been.called;
-            });
+                it('should unbind only own handlers', function() {
+                    block1.domEvents().un('click');
+                    block1.domElem.trigger('click');
 
-            it('should properly unbind all handlers on block destruct', function() {
-                BEMDOM.destruct(block1.domElem);
-                BEMDOM.win.trigger('resize');
+                    spy1.should.not.have.been.called;
+                    spy2.should.not.have.been.called;
 
-                spy1.should.not.have.been.called;
-                spy2.should.not.have.been.called;
+                    spy5.should.have.been.called;
+                });
             });
         });
     });
