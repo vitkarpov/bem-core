@@ -583,19 +583,18 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                         this.un(type, e[type]);
                     }, this);
                 } else {
-                    var wrappedFn;
-                    if(params.entityCls) {
-                        var fnId = identify(fn) + _thisId;
-                        wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
-                        wrappedFn && (domEventsStorage[e][fnId] = null);
-                    }
-
                     var argsLen = arguments.length;
                     if(!argsLen) {
                         Object.keys(domEventsStorage).forEach(this._unbindByEvent);
                     } else if(argsLen === 1) {
                         this._unbindByEvent(e);
                     } else {
+                        var wrappedFn;
+                        if(params.entityCls) {
+                            var fnId = identify(fn) + _thisId;
+                            wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
+                            wrappedFn && (domEventsStorage[e][fnId] = null);
+                        }
                         params.ctx.off(e, params.selector, wrappedFn || fn);
                     }
                 }
@@ -806,8 +805,10 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                         wrappedFn = function(e) {
                             var entityDomNode = $(e.target).closest(entitySelector);
                             if(entityDomNode[0]) {
+                                var prevBemTarget = e.bemTarget;
                                 e.bemTarget = $(this).bem(params.entityCls);
                                 fn.call(entityDomNode.bem(_this), e);
+                                e.bemTarget = prevBemTarget;
                             }
                         } :
                         fn;
@@ -830,19 +831,18 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                         this.un(type, e[type]);
                     }, this);
                 } else {
-                    var wrappedFn;
-                    if(params.entityCls) {
-                        var fnId = identify(fn) + _thisId;
-                        wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
-                        wrappedFn && (domEventsStorage[e][fnId] = null);
-                    }
-
                     var argsLen = arguments.length;
                     if(!argsLen) {
                         Object.keys(domEventsStorage).forEach(this._unbindByEvent);
                     } else if(argsLen === 1) {
                         this._unbindByEvent(e);
                     } else {
+                        var wrappedFn;
+                        if(params.entityCls) {
+                            var fnId = identify(fn) + _thisId;
+                            wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
+                            wrappedFn && (domEventsStorage[e][fnId] = null);
+                        }
                         params.ctx.off(e, params.selector, wrappedFn || fn);
                     }
                 }
