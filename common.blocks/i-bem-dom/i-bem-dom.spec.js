@@ -1030,7 +1030,7 @@ describe('i-bem-dom', function() {
         });
     });
 
-    describe('DOM events', function() {
+    describe.only('DOM events', function() {
         var Block1, Block2, block1, spy1, spy2, spy3, spy4, spy5, spy6, spy7,
             data = { data : 'data' };
 
@@ -1123,7 +1123,7 @@ describe('i-bem-dom', function() {
                 });
             });
 
-            describe.only('block elems events', function() {
+            describe('block elems events', function() {
                 ['string', 'Class'].forEach(function(elemType) {
                     var elem1, elem2;
 
@@ -1211,6 +1211,10 @@ describe('i-bem-dom', function() {
                                 spy1.should.not.have.been.called;
                                 spy2.should.not.have.been.called;
                                 spy3.should.not.have.been.called;
+
+                                elem2.domElem.trigger('click');
+
+                                spy5.should.have.been.called;
                             });
 
                             it('should properly unbind specified handler', function() {
@@ -1442,7 +1446,11 @@ describe('i-bem-dom', function() {
                             this.domEvents()
                                 .on('click', spy1)
                                 .on('click', spy2)
-                                .on('click', data, spy3)
+                                .on('click', data, function(e) {
+                                    // NOTE: we need to pass bemTarget explicitly, as `e` is being
+                                    // changed while event is propagating
+                                    spy3.call(this, e, e.bemTarget);
+                                })
                                 .on({ 'click' : spy4 }, data);
                         }
                     });
@@ -1467,7 +1475,7 @@ describe('i-bem-dom', function() {
                     spy2.should.have.been.called;
 
                     spy3.should.have.been.calledOn(block1);
-                    spy3.args[0][0].bemTarget.should.be.instanceOf(Block1);
+                    spy3.args[0][1].should.be.instanceOf(Block1);
                     spy3.args[0][0].data.should.have.been.equal(data);
                     spy4.args[0][0].data.should.have.been.equal(data);
                 });
@@ -1520,7 +1528,11 @@ describe('i-bem-dom', function() {
                                     this.domEvents(elem1)
                                         .on('click', spy1)
                                         .on('click', spy2)
-                                        .on('click', data, spy3)
+                                        .on('click', data, function(e) {
+                                            // NOTE: we need to pass bemTarget explicitly, as `e` is being
+                                            // changed while event is propagating
+                                            spy3.call(this, e, e.bemTarget);
+                                        })
                                         .on({ 'click' : spy4 }, data);
 
                                     this.domEvents('e2').on('click', spy5);
@@ -1551,8 +1563,8 @@ describe('i-bem-dom', function() {
 
                             spy3.should.have.been.called;
                             spy3.args[0][0].data.should.have.been.equal(data);
-                            spy3.args[0][0].bemTarget.should.be.instanceOf(Elem1);
-                            spy3.args[0][0].bemTarget.domElem[0]
+                            spy3.args[0][1].should.be.instanceOf(Elem1);
+                            spy3.args[0][1].domElem[0]
                                 .should.be.equal(block1.elem(elem1).domElem[0]);
 
                             spy4.should.have.been.called;

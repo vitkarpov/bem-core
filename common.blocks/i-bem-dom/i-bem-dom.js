@@ -270,7 +270,8 @@ function buildDomEventsParams(ctx, defCtx, defSelector, defCls) {
     var res = {
             entityCls : null,
             ctx : defCtx,
-            selector : defSelector
+            selector : defSelector,
+            key : ''
         };
 
     if(ctx) {
@@ -280,8 +281,10 @@ function buildDomEventsParams(ctx, defCtx, defSelector, defCls) {
             if(ctx[0] !== winNode && ctx[0] !== docNode)
                 throw Error('DOM-events: jQuery-chain can contain only document or window');
             res.ctx = ctx;
+            res.key = identify(ctx);
         } else if(ctx === winNode || ctx === docNode) {
             res.ctx = $(ctx);
+            res.key = identify(ctx);
         } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
             var elemName;
             if(typeOfCtx === 'string') {
@@ -296,7 +299,7 @@ function buildDomEventsParams(ctx, defCtx, defSelector, defCls) {
 
             var entityName = buildClass(defCls._blockName, elemName);
             res.entityCls = getEntityCls(entityName);
-            res.selector = '.' + entityName + buildModPostfix(ctx.modName, ctx.modVal);
+            res.selector = '.' + (res.key = entityName + buildModPostfix(ctx.modName, ctx.modVal));
         }
     } else {
         res.entityCls = defCls;
@@ -530,11 +533,10 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @todo think about passing BemDomEntity as a context
      */
     domEvents : function(ctx) {
-        var params = buildDomEventsParams(ctx, this.domElem, '', this.__self),
-            _this = this,
+        var _this = this,
             _thisId = identify(_this),
-            ctxId = identify(params.ctx[0]),
-            domEventsStorage = _this._domEventsStorage[ctxId] || (_this._domEventsStorage[ctxId] = {});
+            params = buildDomEventsParams(ctx, this.domElem, '', this.__self),
+            domEventsStorage = _this._domEventsStorage[params.key] || (_this._domEventsStorage[params.key] = {});
 
         return {
             /**
@@ -771,13 +773,12 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @todo think about passing BemDomEntity as a context
      */
     domEvents : function(ctx) {
-        var entitySelector = this.buildSelector(),
-            params = buildDomEventsParams(ctx, doc, entitySelector, this),
-            _this = this,
+        var _this = this,
             _thisId = identify(_this),
-            ctxId = identify(params.ctx[0]),
+            entitySelector = this.buildSelector(),
+            params = buildDomEventsParams(ctx, doc, entitySelector, this),
             clsDomEventsStorage = liveDomEventsStorage[_thisId] || (liveDomEventsStorage[_thisId] = {}),
-            domEventsStorage = clsDomEventsStorage[ctxId] || (clsDomEventsStorage[ctxId] = {});
+            domEventsStorage = clsDomEventsStorage[params.key] || (clsDomEventsStorage[params.key] = {});
 
         return {
             /**
