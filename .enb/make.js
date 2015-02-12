@@ -320,6 +320,14 @@ module.exports = function(config) {
                             jsAttrScheme : 'json'
                         }
                     },
+                    'bh-php' : {
+                        tech : 'enb-bh-php/techs/bh-php-test',
+                        options : {
+                            jsAttrName : 'data-bem',
+                            jsAttrScheme : 'json',
+                            isAsync : true
+                        }
+                    },
                     'bemhtml-dev' : {
                         tech : 'enb-bemxjst/techs/bemhtml-old',
                         options : { devMode : true }
