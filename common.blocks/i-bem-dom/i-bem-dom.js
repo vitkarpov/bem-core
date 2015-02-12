@@ -538,6 +538,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
             params = buildDomEventsParams(ctx, this.domElem, '', this.__self),
             domEventsStorage = _this._domEventsStorage[params.key] || (_this._domEventsStorage[params.key] = {});
 
+        // TODO: use cache for { on : ..., un : ... }
         return {
             /**
              * Adds an event handler
@@ -780,6 +781,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
             clsDomEventsStorage = liveDomEventsStorage[thisId] || (liveDomEventsStorage[thisId] = {}),
             domEventsStorage = clsDomEventsStorage[params.key] || (clsDomEventsStorage[params.key] = {});
 
+        // TODO: use cache for { on : ..., un : ... }
         return {
             /**
              * Adds an event handler
@@ -806,10 +808,8 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                         wrappedFn = function(e) {
                             var entityDomNode = $(e.target).closest(entitySelector);
                             if(entityDomNode[0]) {
-                                var prevBemTarget = e.bemTarget;
                                 e.bemTarget = $(this).bem(params.entityCls);
                                 fn.call(entityDomNode.bem(_this), e);
-                                e.bemTarget = prevBemTarget;
                             }
                         } :
                         fn;
