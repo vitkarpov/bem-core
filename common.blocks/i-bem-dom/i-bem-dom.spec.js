@@ -1032,6 +1032,13 @@ describe('i-bem-dom', function() {
 
     describe.only('DOM events', function() {
         var Block1, Block2, block1, spy1, spy2, spy3, spy4, spy5, spy6, spy7,
+            wrapSpy = function(spy) {
+                return function(e) {
+                    // NOTE: we need to pass bemTarget explicitly, as `e` is being
+                    // changed while event is propagating
+                    spy.call(this, e, e.bemTarget);
+                };
+            },
             data = { data : 'data' };
 
         beforeEach(function() {
@@ -1128,15 +1135,13 @@ describe('i-bem-dom', function() {
                     var elem1, elem2;
 
                     describe('elem as ' + elemType, function() {
+                        var Elem1, Elem2;
+
                         beforeEach(function() {
                             elem1 = elemType === 'string'?
                                 'e1' :
                                 BEMDOM.declElem('block', 'e1');
-                        });
 
-                        var Elem1, Elem2;
-
-                        beforeEach(function() {
                             Block1 = BEMDOM.declBlock('block', {
                                 onSetMod : {
                                     'js' : {
@@ -1161,11 +1166,7 @@ describe('i-bem-dom', function() {
                                     'js' : {
                                         'inited' : function() {
                                             this.domEvents(elem1)
-                                                .on('click', function(e) {
-                                                    // NOTE: we need to pass bemTarget explicitly, as `e` is being
-                                                    // changed while event is propagating
-                                                    spy6.call(this, e, e.bemTarget);
-                                                })
+                                                .on('click', wrapSpy(spy6))
                                                 .on('click', spy7);
                                         }
                                     }
@@ -1433,7 +1434,6 @@ describe('i-bem-dom', function() {
             });
         });
 
-        // TODO: tests for elems inside elem
         describe('live events', function() {
             function initDom(bemjson) {
                 return createDomNode(bemjson).appendTo(BEMDOM.scope);
@@ -1446,11 +1446,7 @@ describe('i-bem-dom', function() {
                             this.domEvents()
                                 .on('click', spy1)
                                 .on('click', spy2)
-                                .on('click', data, function(e) {
-                                    // NOTE: we need to pass bemTarget explicitly, as `e` is being
-                                    // changed while event is propagating
-                                    spy3.call(this, e, e.bemTarget);
-                                })
+                                .on('click', data, wrapSpy(spy3))
                                 .on({ 'click' : spy4 }, data);
                         }
                     });
@@ -1511,28 +1507,22 @@ describe('i-bem-dom', function() {
 
             describe('block elems events', function() {
                 ['string', 'Class'].forEach(function(elemType) {
-                    var elem1;
+                    var elem1, elem2;
 
                     describe('elem as ' + elemType, function() {
+                        var Elem1, Elem2;
+
                         beforeEach(function() {
                             elem1 = elemType === 'string'?
                                 'e1' :
                                 BEMDOM.declElem('block', 'e1');
-                        });
 
-                        var Elem1, Elem2;
-
-                        beforeEach(function() {
                             Block1 = BEMDOM.declBlock('block', {}, {
                                 live : function() {
                                     this.domEvents(elem1)
                                         .on('click', spy1)
                                         .on('click', spy2)
-                                        .on('click', data, function(e) {
-                                            // NOTE: we need to pass bemTarget explicitly, as `e` is being
-                                            // changed while event is propagating
-                                            spy3.call(this, e, e.bemTarget);
-                                        })
+                                        .on('click', data, wrapSpy(spy3))
                                         .on({ 'click' : spy4 }, data);
 
                                     this.domEvents('e2').on('click', spy5);
@@ -1542,53 +1532,98 @@ describe('i-bem-dom', function() {
                             Elem1 = elemType === 'string'?
                                 BEMDOM.declElem('block', 'e1') :
                                 elem1;
-                            Elem2 = BEMDOM.declElem('block', 'e2');
+                            Elem2 = BEMDOM.declElem('block', 'e2', {}, {
+                                live : function() {
+                                    this.domEvents(elem1)
+                                        .on('click', wrapSpy(spy6))
+                                        .on('click', spy7);
+                                }
+                            });
 
                             block1 = initDom({
                                 block : 'block',
                                 content : [
                                     { elem : 'e1', content : { elem : 'e3' } },
-                                    { elem : 'e2' }
+                                    { elem : 'e2', content : { elem : 'e1' } }
                                 ]
                             }).bem(Block1);
+
+                            elem2 = block1.elem('e2');
                         });
 
-                        it('should properly bind handlers', function() {
-                            block1.elem('e3').domElem.trigger('click');
+                        describe('block', function() {
+                            it('should properly bind handlers', function() {
+                                block1.elem('e3').domElem.trigger('click');
 
-                            spy1.should.have.been.called;
-                            spy1.should.have.been.calledOn(block1);
+                                spy1.should.have.been.called;
+                                spy1.should.have.been.calledOn(block1);
 
-                            spy2.should.have.been.called;
+                                spy2.should.have.been.called;
 
-                            spy3.should.have.been.called;
-                            spy3.args[0][0].data.should.have.been.equal(data);
-                            spy3.args[0][1].should.be.instanceOf(Elem1);
-                            spy3.args[0][1].domElem[0]
-                                .should.be.equal(block1.elem(elem1).domElem[0]);
+                                spy3.should.have.been.called;
+                                spy3.args[0][0].data.should.have.been.equal(data);
+                                spy3.args[0][1].should.be.instanceOf(Elem1);
+                                spy3.args[0][1].domElem[0]
+                                    .should.be.equal(block1.elem(elem1).domElem[0]);
 
-                            spy4.should.have.been.called;
-                            spy4.args[0][0].data.should.have.been.equal(data);
+                                spy4.should.have.been.called;
+                                spy4.args[0][0].data.should.have.been.equal(data);
 
-                            spy5.should.not.have.been.called;
+                                spy5.should.not.have.been.called;
+                            });
+
+                            it('should properly unbind all handlers', function() {
+                                Block1.domEvents(elem1).un('click');
+                                block1.elem(elem1).domElem.trigger('click');
+
+                                spy1.should.not.have.been.called;
+                                spy2.should.not.have.been.called;
+                                spy3.should.not.have.been.called;
+                            });
+
+                            it('should properly unbind specified handler', function() {
+                                Block1.domEvents(elem1).un('click', spy2);
+                                block1.elem(elem1).domElem.trigger('click');
+
+                                spy1.should.have.been.called;
+                                spy2.should.not.have.been.called;
+                                spy3.should.have.been.called;
+                            });
                         });
 
-                        it('should properly unbind all handlers', function() {
-                            Block1.domEvents(elem1).un('click');
-                            block1.elem(elem1).domElem.trigger('click');
+                        describe('elem instance', function() {
+                            it('should properly bind handlers', function() {
+                                var e2elem1 = elem2.findChildElem('e1');
+                                e2elem1.domElem.trigger('click');
 
-                            spy1.should.not.have.been.called;
-                            spy2.should.not.have.been.called;
-                            spy3.should.not.have.been.called;
-                        });
+                                spy6.should.have.been.called;
+                                spy6.should.have.been.calledOn(elem2);
+                                spy6.args[0][1].should.be.instanceOf(Elem1);
+                                spy6.args[0][1].domElem[0]
+                                    .should.be.equal(e2elem1.domElem[0]);
 
-                        it('should properly unbind specified handler', function() {
-                            Block1.domEvents(elem1).un('click', spy2);
-                            block1.elem(elem1).domElem.trigger('click');
+                                spy7.should.have.been.called;
+                            });
 
-                            spy1.should.have.been.called;
-                            spy2.should.not.have.been.called;
-                            spy3.should.have.been.called;
+                            it('should properly unbind all handlers', function() {
+                                Elem2.domEvents(elem1).un('click');
+
+                                var e2elem1 = elem2.findChildElem('e1');
+                                e2elem1.domElem.trigger('click');
+
+                                spy6.should.not.have.been.called;
+                                spy7.should.not.have.been.called;
+                            });
+
+                            it('should properly unbind specified handler', function() {
+                                Elem2.domEvents(elem1).un('click', spy7);
+
+                                var e2elem1 = elem2.findChildElem('e1');
+                                e2elem1.domElem.trigger('click');
+
+                                spy6.should.have.been.called;
+                                spy7.should.not.have.been.called;
+                            });
                         });
                     });
 
@@ -1649,48 +1684,7 @@ describe('i-bem-dom', function() {
         });
     });
 
-    describe.skip('liveInitOnBlockInsideEvent', function() {
-        it('should init and call handler on live initialization', function() {
-
-            var spyInit = sinon.spy(),
-                spyHandler = sinon.spy(),
-                Block2 = BEMDOM.declBlock('block2', {}, {}),
-                Block1 = BEMDOM.declBlock('block1', {
-                        onSetMod : {
-                            js : {
-                                inited : spyInit
-                            }
-                        }
-                    }, {
-                        live : function() {
-                            this.liveInitOnBlockInsideEvent('event', Block2, spyHandler);
-                        }
-                    });
-
-            rootNode = BEMDOM.init(BEMHTML.apply({
-                block : 'block1',
-                js : true,
-                content : {
-                    block : 'block2',
-                    js : true
-                }
-            }));
-
-            var block = rootNode.find('.block2').bem(Block2);
-
-            spyInit.called.should.be.false;
-            spyHandler.called.should.be.false;
-
-            block.emit('event');
-
-            spyInit.called.should.be.true;
-            spyHandler.called.should.be.true;
-
-            BEMDOM.destruct(rootNode);
-            delete BEM.entities['block1'];
-            delete BEM.entities['block2'];
-        });
-    });
+    // TODO: add specs for live init
 
     describe('modules.define patching', function() {
         it('should provide BEMDOM block', function(done) {

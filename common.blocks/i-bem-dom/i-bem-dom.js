@@ -534,7 +534,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      */
     domEvents : function(ctx) {
         var _this = this,
-            _thisId = identify(_this),
+            thisId = identify(_this),
             params = buildDomEventsParams(ctx, this.domElem, '', this.__self),
             domEventsStorage = _this._domEventsStorage[params.key] || (_this._domEventsStorage[params.key] = {});
 
@@ -558,7 +558,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                     }
 
                     var wrappedFn,
-                        fnId = identify(fn) + _thisId;
+                        fnId = identify(fn) + thisId;
 
                     (domEventsStorage[e] || (domEventsStorage[e] = {}))[fnId] = params.entityCls?
                         wrappedFn = function(e) {
@@ -593,7 +593,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                     } else {
                         var wrappedFn;
                         if(params.entityCls) {
-                            var fnId = identify(fn) + _thisId;
+                            var fnId = identify(fn) + thisId;
                             wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
                             wrappedFn && (domEventsStorage[e][fnId] = null);
                         }
@@ -774,10 +774,10 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      */
     domEvents : function(ctx) {
         var _this = this,
-            _thisId = identify(_this),
+            thisId = identify(_this),
             entitySelector = this.buildSelector(),
             params = buildDomEventsParams(ctx, doc, entitySelector, this),
-            clsDomEventsStorage = liveDomEventsStorage[_thisId] || (liveDomEventsStorage[_thisId] = {}),
+            clsDomEventsStorage = liveDomEventsStorage[thisId] || (liveDomEventsStorage[thisId] = {}),
             domEventsStorage = clsDomEventsStorage[params.key] || (clsDomEventsStorage[params.key] = {});
 
         return {
@@ -800,7 +800,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                     }
 
                     var wrappedFn,
-                        fnId = identify(fn) + _thisId;
+                        fnId = identify(fn) + thisId;
 
                     (domEventsStorage[e] || (domEventsStorage[e] = {}))[fnId] = params.entityCls?
                         wrappedFn = function(e) {
@@ -840,7 +840,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
                     } else {
                         var wrappedFn;
                         if(params.entityCls) {
-                            var fnId = identify(fn) + _thisId;
+                            var fnId = identify(fn) + thisId;
                             wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
                             wrappedFn && (domEventsStorage[e][fnId] = null);
                         }
