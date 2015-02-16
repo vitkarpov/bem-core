@@ -7,6 +7,7 @@ modules.define(
     [
         'i-bem',
         'i-bem__internal',
+        'i-bem-dom__event-manager_type_dom',
         'inherit',
         'identify',
         'objects',
@@ -18,6 +19,7 @@ modules.define(
         provide,
         BEM,
         BEMINTERNAL,
+        domEventManager,
         inherit,
         identify,
         objects,
@@ -266,7 +268,7 @@ function buildElemKey(elem) {
     return elem.elem + buildModPostfix(elem.modName, elem.modVal);
 }
 
-function buildDomEventsParams(ctx, defCtx, defSelector, defCls) {
+function buildDomEventManagerParams(ctx, defCtx, defSelector, defCls) {
     var res = {
             entityCls : null,
             ctx : defCtx,
@@ -341,8 +343,6 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
          * @private
          */
         this._needSpecialUnbind = false;
-
-        this._domEventsStorage = {};
 
         this.__base(null, params, initImmediately);
     },
@@ -529,90 +529,17 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * Returns an manager to bind and unbind events for particular context
      * @param {Function|String|Object|document|window} [ctx=this.domElem] context to bind,
      *     can be BEM-entity class, instance, element name or description (elem, modName, modVal), document or window
-     * @returns {DomEventManager}
+     * @returns {EventManager}
      * @todo think about passing BemDomEntity as a context
      */
     domEvents : function(ctx) {
-        var _this = this,
-            thisId = identify(_this),
-            params = buildDomEventsParams(ctx, this.domElem, '', this.__self),
-            domEventsStorage = _this._domEventsStorage[params.key] || (_this._domEventsStorage[params.key] = {});
-
-        // TODO: use cache for { on : ..., un : ... }
-        return {
-            /**
-             * Adds an event handler
-             * @param {String} e Event type
-             * @param {Object} [data] Additional data that the handler gets as e.data
-             * @param {Function} fn Handler
-             * @returns {Emitter} this
-             */
-            on : function(e, data, fn) {
-                if(typeof e === 'object') {
-                    Object.keys(e).forEach(function(type) {
-                        this.on(type, data, e[type]);
-                    }, this);
-                } else {
-                    if(arguments.length === 2) {
-                        fn = data;
-                        data = undef;
-                    }
-
-                    var wrappedFn,
-                        fnId = identify(fn) + thisId;
-
-                    (domEventsStorage[e] || (domEventsStorage[e] = {}))[fnId] = params.entityCls?
-                        wrappedFn = function(e) {
-                            e.bemTarget = $(e.currentTarget).bem(params.entityCls);
-                            fn.call(_this, e);
-                        } :
-                        fn;
-
-                    params.ctx.on(e, params.selector, data, wrappedFn || fn);
-                }
-
-                return this;
-            },
-
-            /**
-             * Removes event handler or handlers
-             * @param {String} [e] Event type
-             * @param {Function} [fn] Handler
-             * @returns {Emitter} this
-             */
-            un : function(e, fn) {
-                if(typeof e === 'object') {
-                    Object.keys(e).forEach(function(type) {
-                        this.un(type, e[type]);
-                    }, this);
-                } else {
-                    var argsLen = arguments.length;
-                    if(!argsLen) {
-                        Object.keys(domEventsStorage).forEach(this._unbindByEvent);
-                    } else if(argsLen === 1) {
-                        this._unbindByEvent(e);
-                    } else {
-                        var wrappedFn;
-                        if(params.entityCls) {
-                            var fnId = identify(fn) + thisId;
-                            wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
-                            wrappedFn && (domEventsStorage[e][fnId] = null);
-                        }
-                        params.ctx.off(e, params.selector, wrappedFn || fn);
-                    }
-                }
-
-                return this;
-            },
-
-            _unbindByEvent : function(e) {
-                var fnsStorage = domEventsStorage[e];
-                fnsStorage && Object.keys(fnsStorage).forEach(function(fnId) {
-                    params.ctx.off(e, params.selector, fnsStorage[fnId]);
-                });
-                domEventsStorage[e] = null;
-            }
-        };
+        return domEventManager.createInstanceEventManager(
+            this,
+            buildDomEventManagerParams(
+                ctx,
+                this.domElem,
+                '',
+                this.__self));
     },
 
     _ctxEmit : function(e, data) {
@@ -718,10 +645,6 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @private
      */
     _destruct : function() {
-        [docNode, winNode].forEach(function(node) {
-            this.domEvents(node).un();
-        }, this);
-
         this.__base();
 
         this.un();
@@ -770,95 +693,17 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * Returns an manager to bind and unbind events for particular context
      * @param {Function|String|Object|document|window} [ctx=document] context to bind,
      *     can be BEM-entity class, instance, element name or description (elem, modName, modVal), document or window
-     * @returns {DomEventManager}
+     * @returns {EventManager}
      * @todo think about passing BemDomEntity as a context
      */
     domEvents : function(ctx) {
-        var _this = this,
-            thisId = identify(_this),
-            entitySelector = this.buildSelector(),
-            params = buildDomEventsParams(ctx, doc, entitySelector, this),
-            clsDomEventsStorage = liveDomEventsStorage[thisId] || (liveDomEventsStorage[thisId] = {}),
-            domEventsStorage = clsDomEventsStorage[params.key] || (clsDomEventsStorage[params.key] = {});
-
-        // TODO: use cache for { on : ..., un : ... }
-        return {
-            /**
-             * Adds an event handler
-             * @param {String} e Event type
-             * @param {Object} [data] Additional data that the handler gets as e.data
-             * @param {Function} fn Handler
-             * @returns {Emitter} this
-             */
-            on : function(e, data, fn) {
-                if(typeof e === 'object') {
-                    Object.keys(e).forEach(function(type) {
-                        this.on(type, data, e[type]);
-                    }, this);
-                } else {
-                    if(arguments.length === 2) {
-                        fn = data;
-                        data = undef;
-                    }
-
-                    var wrappedFn,
-                        fnId = identify(fn) + thisId;
-
-                    (domEventsStorage[e] || (domEventsStorage[e] = {}))[fnId] = params.entityCls?
-                        wrappedFn = function(e) {
-                            var entityDomNode = $(e.target).closest(entitySelector);
-                            if(entityDomNode[0]) {
-                                e.bemTarget = $(this).bem(params.entityCls);
-                                fn.call(entityDomNode.bem(_this), e);
-                            }
-                        } :
-                        fn;
-
-                    params.ctx.on(e, params.selector, data, wrappedFn || fn);
-                }
-
-                return this;
-            },
-
-            /**
-             * Removes event handler or handlers
-             * @param {String} [e] Event type
-             * @param {Function} [fn] Handler
-             * @returns {Emitter} this
-             */
-            un : function(e, fn) {
-                if(typeof e === 'object') {
-                    Object.keys(e).forEach(function(type) {
-                        this.un(type, e[type]);
-                    }, this);
-                } else {
-                    var argsLen = arguments.length;
-                    if(!argsLen) {
-                        Object.keys(domEventsStorage).forEach(this._unbindByEvent);
-                    } else if(argsLen === 1) {
-                        this._unbindByEvent(e);
-                    } else {
-                        var wrappedFn;
-                        if(params.entityCls) {
-                            var fnId = identify(fn) + thisId;
-                            wrappedFn = domEventsStorage[e] && domEventsStorage[e][fnId];
-                            wrappedFn && (domEventsStorage[e][fnId] = null);
-                        }
-                        params.ctx.off(e, params.selector, wrappedFn || fn);
-                    }
-                }
-
-                return this;
-            },
-
-            _unbindByEvent : function(e) {
-                var fnsStorage = domEventsStorage[e];
-                fnsStorage && Object.keys(fnsStorage).forEach(function(fnId) {
-                    params.ctx.off(e, params.selector, fnsStorage[fnId]);
-                });
-                domEventsStorage[e] = null;
-            }
-        };
+        return domEventManager.createClassEventManager(
+            this,
+            buildDomEventManagerParams(
+                ctx,
+                BEMDOM.scope,
+                this.buildSelector(),
+                this));
     },
 
     _liveClassBind : function(className, e, callback, invokeOnInit) {

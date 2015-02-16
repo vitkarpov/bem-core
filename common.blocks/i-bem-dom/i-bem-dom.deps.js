@@ -6,7 +6,8 @@
         'functions',
         'dom',
         { mod : 'init' },
-        { block : 'i-bem', elems : ['internal'] }
+        { block : 'i-bem', elems : ['internal'] },
+        { elem : 'event-manager', mods : { type : 'dom' } }
     ]
 },
 {

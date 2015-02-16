@@ -1,4 +1,8 @@
 ({
-    mustDeps: [],
-    shouldDeps: []
+    shouldDeps : [
+        'inherit',
+        'identify',
+        'objects',
+        'jquery'
+    ]
 })
