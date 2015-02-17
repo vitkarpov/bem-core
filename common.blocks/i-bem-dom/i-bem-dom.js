@@ -8,6 +8,7 @@ modules.define(
         'i-bem',
         'i-bem__internal',
         'i-bem-dom__event-manager_type_dom',
+        'i-bem-dom__event-manager_type_bem',
         'inherit',
         'identify',
         'objects',
@@ -20,6 +21,7 @@ modules.define(
         BEM,
         BEMINTERNAL,
         domEventManager,
+        bemEventManager,
         inherit,
         identify,
         objects,
@@ -471,7 +473,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Returns an manager to bind and unbind events for particular context
+     * Returns an manager to bind and unbind DOM events for particular context
      * @param {Function|String|Object|document|window} [ctx=this.domElem] context to bind,
      *     can be BEM-entity class, instance, element name or description (elem, modName, modVal), document or window
      * @returns {EventManager}
@@ -484,34 +486,26 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
             getEntityCls);
     },
 
+    /**
+     * Returns an manager to bind and unbind BEM events for particular context
+     * @param {Function|String|Object|document|window} [ctx=this.domElem] context to bind,
+     *     can be BEM-entity class, instance, element name or description (elem, modName, modVal), document or window
+     * @returns {EventManager}
+     * @todo think about passing BemDomEntity as a context
+     */
+    events : function(ctx) {
+        return bemEventManager.getInstanceEventManager(
+            this,
+            ctx,
+            getEntityCls);
+    },
+
     _ctxEmit : function(e, data) {
+        this.domElem.trigger(
+            bemEventManager.buildEventName(e, this.__self.getEntityName()),
+            [data, {}]);
+
         this.__base.apply(this, arguments);
-
-        var _this = this,
-            storage = liveEventCtxStorage[_this.__self._buildCtxEventName(e.type)],
-            ctxIds = {};
-
-        storage && _this.domElem.each(function(_, ctx) {
-            var counter = storage.counter;
-            while(ctx && counter) {
-                var ctxId = identify(ctx, true);
-                if(ctxId) {
-                    if(ctxIds[ctxId]) break;
-                    var storageCtx = storage.ctxs[ctxId];
-                    if(storageCtx) {
-                        objects.each(storageCtx, function(handler) {
-                            handler.fn.call(
-                                handler.ctx || _this,
-                                e,
-                                data);
-                        });
-                        counter--;
-                    }
-                    ctxIds[ctxId] = true;
-                }
-                ctx = ctx.parentNode || domNodesToParents[ctxId];
-            }
-        });
     },
 
     /**

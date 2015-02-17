@@ -6,7 +6,7 @@ modules.define(
 var undef,
     expect = chai.expect;
 
-describe('DOM events', function() {
+describe('BEM events', function() {
     var Block1, Block2, block1, spy1, spy2, spy3, spy4, spy5, spy6, spy7,
         wrapSpy = function(spy) {
             return function(e) {
@@ -36,13 +36,13 @@ describe('DOM events', function() {
     });
 
     describe('on instance events', function() {
-        describe('block domElem events', function() {
+        describe.only('block domElem events', function() {
             beforeEach(function() {
                 Block1 = BEMDOM.declBlock('block1', {
                     onSetMod : {
                         'js' : {
                             'inited' : function() {
-                                this.domEvents()
+                                this.events()
                                     .on('click', spy1)
                                     .on('click', spy2)
                                     .on('click', data, spy3)
@@ -56,7 +56,7 @@ describe('DOM events', function() {
                     onSetMod : {
                         'js' : {
                             'inited' : function() {
-                                this.domEvents()
+                                this.events()
                                     .on('click', spy5);
                             }
                         }
@@ -70,7 +70,7 @@ describe('DOM events', function() {
             });
 
             it('should properly bind handlers', function() {
-                block1.domElem.trigger('click');
+                block1.emit('click');
 
                 spy1.should.have.been.called;
                 spy2.should.have.been.called;
@@ -82,17 +82,17 @@ describe('DOM events', function() {
             });
 
             it('should properly unbind all handlers', function() {
-                block1.domEvents().un('click');
-                block1.domElem.trigger('click');
+                block1.events().un('click');
+                block1.emit('click');
 
                 spy1.should.not.have.been.called;
                 spy2.should.not.have.been.called;
             });
 
             it('should properly unbind specified handler', function() {
-                block1.domEvents().un('click', spy1);
-                block1.domEvents().un({'click' : spy2});
-                block1.domElem.trigger('click');
+                block1.events().un('click', spy1);
+                block1.events().un({'click' : spy2});
+                block1.emit('click');
 
                 spy1.should.not.have.been.called;
                 spy2.should.not.have.been.called;
@@ -100,8 +100,9 @@ describe('DOM events', function() {
             });
 
             it('should unbind only own handlers', function() {
-                block1.domEvents().un('click');
-                block1.domElem.trigger('click');
+                block1.events().un('click');
+                block1.emit('click');
+                block1.findMixedBlock(Block2).emit('click');
 
                 spy1.should.not.have.been.called;
                 spy2.should.not.have.been.called;

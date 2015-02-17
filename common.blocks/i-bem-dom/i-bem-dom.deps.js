@@ -7,7 +7,7 @@
         'dom',
         { mod : 'init' },
         { block : 'i-bem', elems : ['internal'] },
-        { elem : 'event-manager', mods : { type : 'dom' } }
+        { elem : 'event-manager', mods : { type : ['dom', 'bem'] } }
     ]
 },
 {
