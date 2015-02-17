@@ -28,11 +28,6 @@ modules.define(
         dom) {
 
 var undef,
-    winNode = window,
-    docNode = document,
-    win = $(winNode),
-    doc = $(docNode),
-
     /**
      * Storage for DOM elements by unique key
      * @type Object
@@ -268,48 +263,6 @@ function buildElemKey(elem) {
     return elem.elem + buildModPostfix(elem.modName, elem.modVal);
 }
 
-function buildDomEventManagerParams(ctx, defCtx, defSelector, defCls) {
-    var res = {
-            entityCls : null,
-            ctx : defCtx,
-            selector : defSelector,
-            key : ''
-        };
-
-    if(ctx) {
-        var typeOfCtx = typeof ctx;
-
-        if(ctx.jquery && ctx.length === 1) {
-            if(ctx[0] !== winNode && ctx[0] !== docNode)
-                throw Error('DOM-events: jQuery-chain can contain only document or window');
-            res.ctx = ctx;
-            res.key = identify(ctx);
-        } else if(ctx === winNode || ctx === docNode) {
-            res.ctx = $(ctx);
-            res.key = identify(ctx);
-        } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
-            var elemName;
-            if(typeOfCtx === 'string') {
-                ctx = { elem : elemName = ctx };
-            } else if(typeOfCtx === 'object') {
-                elemName = typeof ctx.elem === 'function'?
-                    ctx.elem.getName() :
-                    ctx.elem;
-            } else {
-                ctx = { elem : elemName = ctx.getName() };
-            }
-
-            var entityName = buildClass(defCls._blockName, elemName);
-            res.entityCls = getEntityCls(entityName);
-            res.selector = '.' + (res.key = entityName + buildModPostfix(ctx.modName, ctx.modVal));
-        }
-    } else {
-        res.entityCls = defCls;
-    }
-
-    return res;
-}
-
 /**
  * @class BemDomEntity
  * @description Base mix for BEM entities that have DOM representation
@@ -533,13 +486,10 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @todo think about passing BemDomEntity as a context
      */
     domEvents : function(ctx) {
-        return domEventManager.createInstanceEventManager(
+        return domEventManager.getInstanceEventManager(
             this,
-            buildDomEventManagerParams(
-                ctx,
-                this.domElem,
-                '',
-                this.__self));
+            ctx,
+            getEntityCls);
     },
 
     _ctxEmit : function(e, data) {
@@ -697,13 +647,11 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @todo think about passing BemDomEntity as a context
      */
     domEvents : function(ctx) {
-        return domEventManager.createClassEventManager(
+        return domEventManager.getClassEventManager(
             this,
-            buildDomEventManagerParams(
-                ctx,
-                BEMDOM.scope,
-                this.buildSelector(),
-                this));
+            ctx,
+            BEMDOM.scope,
+            getEntityCls);
     },
 
     _liveClassBind : function(className, e, callback, invokeOnInit) {
@@ -1206,13 +1154,13 @@ BEMDOM = /** @exports */{
      * Document shortcut
      * @type jQuery
      */
-    doc : doc,
+    doc : $(document),
 
     /**
      * Window shortcut
      * @type jQuery
      */
-    win : win,
+    win : $(window),
 
     /**
      * Base BEMDOM block

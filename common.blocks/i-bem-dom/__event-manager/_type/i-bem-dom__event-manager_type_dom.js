@@ -4,6 +4,7 @@
 modules.define(
     'i-bem-dom__event-manager_type_dom',
     [
+        'i-bem__internal',
         'inherit',
         'identify',
         'objects',
@@ -11,6 +12,7 @@ modules.define(
     ],
     function(
         provide,
+        BEMINTERNAL,
         inherit,
         identify,
         objects,
@@ -23,6 +25,49 @@ var undef,
     docId = identify(docNode),
 
     eventStorage = {},
+
+    buildDomEventManagerParams = function(ctx, defCtx, defSelector, defCls, getEntityCls) {
+        var res = {
+                entityCls : null,
+                ctx : defCtx,
+                selector : defSelector,
+                key : ''
+            };
+
+        if(ctx) {
+            var typeOfCtx = typeof ctx;
+
+            if(ctx.jquery && ctx.length === 1) {
+                if(ctx[0] !== winNode && ctx[0] !== docNode)
+                    throw Error('DOM-events: jQuery-chain can contain only document or window');
+                res.ctx = ctx;
+                res.key = identify(ctx);
+            } else if(ctx === winNode || ctx === docNode) {
+                res.ctx = $(ctx);
+                res.key = identify(ctx);
+            } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
+                var elemName;
+                if(typeOfCtx === 'string') {
+                    ctx = { elem : elemName = ctx };
+                } else if(typeOfCtx === 'object') {
+                    elemName = typeof ctx.elem === 'function'?
+                        ctx.elem.getName() :
+                        ctx.elem;
+                } else {
+                    ctx = { elem : elemName = ctx.getName() };
+                }
+
+                var entityName = BEMINTERNAL.buildClass(defCls._blockName, elemName);
+                res.entityCls = getEntityCls(entityName);
+                res.selector = '.' + (res.key = entityName + BEMINTERNAL.buildModPostfix(ctx.modName, ctx.modVal));
+            }
+        } else {
+            res.entityCls = defCls;
+        }
+
+        return res;
+    },
+
     EventManager = inherit({
         __constructor : function(params, fnWrapper) {
             this._params = params;
@@ -81,13 +126,15 @@ var undef,
                 } else if(argsLen === 1) {
                     this._unbindByEvent(this._storage[e], e);
                 } else {
-                    var wrappedFn;
-                    if(this._params.entityCls) {
-                        var fnId = identify(fn);
-                        wrappedFn = this._storage[e] && this._storage[e][fnId];
-                        wrappedFn && (this._storage[e][fnId] = null);
+                    var wrappedFn,
+                        params = this._params;
+                    if(params.entityCls) {
+                        var fnId = identify(fn),
+                            fnStorage = this._storage[e];
+                        wrappedFn = fnStorage && fnStorage[fnId];
+                        wrappedFn && (fnStorage[fnId] = null);
                     }
-                    this._params.ctx.off(e, this._params.selector, wrappedFn || fn);
+                    params.ctx.off(e, params.selector, wrappedFn || fn);
                 }
             }
 
@@ -104,7 +151,7 @@ var undef,
     });
 
 provide({
-    createInstanceEventManager : function(instance, params) {
+    getInstanceEventManager : function(instance, ctx, getEntityCls) {
         var instanceId = identify(instance),
             instanceStorage = eventStorage[instanceId];
 
@@ -117,6 +164,13 @@ provide({
             });
         }
 
+        var params = buildDomEventManagerParams(
+                ctx,
+                instance.domElem,
+                '',
+                instance.__self,
+                getEntityCls);
+
         return instanceStorage[params.key] ||
             (instanceStorage[params.key] = new EventManager(
                 params,
@@ -128,10 +182,16 @@ provide({
                 }));
     },
 
-    createClassEventManager : function(cls, params) {
+    getClassEventManager : function(cls, ctx, scope, getEntityCls) {
         var clsId = identify(cls),
             clsStorage = eventStorage[clsId] || (eventStorage[clsId] = {}),
-            entitySelector = cls.buildSelector();
+            entitySelector = cls.buildSelector(),
+            params = buildDomEventManagerParams(
+                ctx,
+                scope,
+                cls.buildSelector(),
+                cls,
+                getEntityCls);
 
         return clsStorage[params.key] ||
             (clsStorage[params.key] = new EventManager(
