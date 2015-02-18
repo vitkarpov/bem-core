@@ -737,7 +737,7 @@ describe('i-bem-dom', function() {
             spy.should.have.been.called;
         });
 
-        it('should init block with multiple DOM nodes', function(done) {
+        it('should properly init block with multiple DOM nodes', function(done) {
             BEMDOM.declBlock('block', {
                 onSetMod : {
                     js : {
@@ -756,6 +756,31 @@ describe('i-bem-dom', function() {
                     { block : 'block', js : { id : 'id' } }
                 ]
             });
+        });
+
+        it('should properly init elem with multiple DOM nodes', function(done) {
+            BEMDOM.declBlock('block');
+
+            BEMDOM.declElem('block', 'e1', {
+                onSetMod : {
+                    js : {
+                        inited : function() {
+                            this.domElem.length.should.be.equal(2);
+                            done();
+                        }
+                    }
+                }
+            });
+
+            rootNode = createDomNode({
+                block : 'block',
+                content : [
+                    { elem : 'e1', js : { id : 'id' } },
+                    { elem : 'e1', js : { id : 'id' } }
+                ]
+            });
+
+            console.log(rootNode[0].outerHTML)
         });
 
         it('shouldn\'t init live block', function() {

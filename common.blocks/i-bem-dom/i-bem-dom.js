@@ -306,6 +306,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
      * @returns {Block}
      */
     findChildBlock : function(Block) {
+        // TODO: throw if Block passed as a string
         return this._findEntities('find', Block, true);
     },
 

@@ -47,6 +47,7 @@ var undef,
                         ctx.elem.getName() :
                         ctx.elem;
                 } else {
+                    // TODO: ctx can be class of a block, not elem
                     ctx = { elem : elemName = ctx.getName() };
                 }
 
@@ -183,7 +184,7 @@ provide({
     },
 
     getClassEventManager : function(cls, ctx, scope, getEntityCls) {
-        var clsId = identify(cls),
+        /*var clsId = identify(cls),
             clsStorage = eventStorage[clsId] || (eventStorage[clsId] = {}),
             entitySelector = cls.buildSelector(),
             params = buildBemEventManagerParams(
@@ -206,6 +207,7 @@ provide({
                         }
                     };
                 }));
+        */
     },
 
     buildEventName : buildEventName

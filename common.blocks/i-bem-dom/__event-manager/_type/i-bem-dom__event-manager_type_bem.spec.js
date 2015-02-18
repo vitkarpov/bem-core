@@ -6,8 +6,8 @@ modules.define(
 var undef,
     expect = chai.expect;
 
-describe('BEM events', function() {
-    var Block1, Block2, block1, spy1, spy2, spy3, spy4, spy5, spy6, spy7,
+describe.only('BEM events', function() {
+    var Block1, Block2, block1, spy1, spy2, spy3, spy4, spy5, spy6, spy7, spy8,
         wrapSpy = function(spy) {
             return function(e) {
                 // NOTE: we need to pass bemTarget explicitly, as `e` is being
@@ -25,6 +25,7 @@ describe('BEM events', function() {
         spy5 = sinon.spy();
         spy6 = sinon.spy();
         spy7 = sinon.spy();
+        spy8 = sinon.spy();
     });
 
     afterEach(function() {
@@ -35,8 +36,12 @@ describe('BEM events', function() {
         });
     });
 
+    function initDom(bemjson) {
+        return createDomNode(bemjson).appendTo(BEMDOM.scope);
+    }
+
     describe('on instance events', function() {
-        describe.only('block domElem events', function() {
+        describe('block BEM events', function() {
             beforeEach(function() {
                 Block1 = BEMDOM.declBlock('block1', {
                     onSetMod : {
@@ -63,7 +68,7 @@ describe('BEM events', function() {
                     }
                 });
 
-                block1 = createDomNode({
+                block1 = initDom({
                     block : 'block1',
                     mix : { block : 'block2', js : true }
                 }).bem(Block1);
@@ -111,6 +116,38 @@ describe('BEM events', function() {
             });
         });
 
+        describe('nested blocks events', function() {
+            beforeEach(function() {
+                Block1 = BEMDOM.declBlock('block', {
+                    onSetMod : {
+                        'js' : {
+                            'inited' : function() {
+                                this.events(Block2).on('click', spy1);
+                            }
+                        }
+                    }
+                });
+
+                Block2 = BEMDOM.declBlock('block2');
+
+                block1 = initDom({
+                    block : 'block',
+                    content : [
+                        {
+                            block : 'block2',
+                            content : { block : 'block2' }
+                        }
+                    ]
+                }).bem(Block1);
+            });
+
+            it('should properly handle events (bound in class context) from nested block', function() {
+                block1.findChildBlocks(Block2)[0].emit('click');
+
+                spy1.should.have.been.calledOnce;
+            });
+        });
+
         describe('block elems events', function() {
             ['string', 'Class'].forEach(function(elemType) {
                 var elem1, elem2;
@@ -127,17 +164,19 @@ describe('BEM events', function() {
                             onSetMod : {
                                 'js' : {
                                     'inited' : function() {
-                                        this.domEvents(elem1)
-                                            .on('click', spy1)
-                                            .on('click', spy2)
-                                            .on('click', data, spy3)
-                                            .on({ 'click' : spy4 }, data);
-
-                                        this.domEvents('e2').on('click', spy5);
+                                        //this.events(elem1)
+                                        //    .on('click', spy1)
+                                        //    .on('click', spy2)
+                                        //    .on('click', data, spy3)
+                                        //    .on({ 'click' : spy4 }, data);
+                                        //
+                                        //this.domEvents('e2').on('click', spy5);
                                     }
                                 }
                             }
                         });
+
+                        Block2 = BEMDOM.declBlock('block2');
 
                         Elem1 = elemType === 'string'?
                             BEMDOM.declElem('block', 'e1') :
@@ -154,11 +193,14 @@ describe('BEM events', function() {
                             }
                         });
 
-                        block1 = createDomNode({
+                        block1 = initDom({
                             block : 'block',
                             content : [
                                 { elem : 'e1', content : { elem : 'e3' } },
-                                { elem : 'e2', content : { elem : 'e1' } }
+                                { elem : 'e2', content : { elem : 'e1' } },
+                                { elem : 'e4', js : { id : 'ie4' } },
+                                { elem : 'e4', js : { id : 'ie4' } },
+                                { elem : 'e5', content : { elem : 'e5' } }
                             ]
                         }).bem(Block1);
 
@@ -166,6 +208,26 @@ describe('BEM events', function() {
                     });
 
                     describe('block', function() {
+                        it('should properly handle events on elems with multiple DOM nodes', function() {
+                            block1.events('e4').on('click', spy8);
+
+                            block1.elem('e4').emit('click');
+
+                            spy8.should.have.been.calledOnce;
+                        });
+
+                        it('should properly handle events (bound in class context) from nested elems', function() {
+                            block1.events('e5').on('click', wrapSpy(spy8));
+
+                            var nestedE5 = block1.findChildElems('e5')[1];
+                            nestedE5.emit('click');
+
+                            spy8.should.have.been.calledOnce;
+                            spy8.args[0][0].bemTarget.domElem[0]
+                                .should.be.equal(nestedE5.domElem[0]);
+                        });
+
+                        /*
                         it('should properly bind handlers', function() {
                             block1.elem('e3').domElem.trigger('click');
 
@@ -207,6 +269,7 @@ describe('BEM events', function() {
                             spy2.should.not.have.been.called;
                             spy3.should.have.been.called;
                         });
+                        */
                     });
 
                     describe('elem instance', function() {
