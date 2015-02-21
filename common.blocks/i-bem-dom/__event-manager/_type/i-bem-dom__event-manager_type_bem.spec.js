@@ -96,7 +96,7 @@ describe.only('BEM events', function() {
 
             it('should properly unbind specified handler', function() {
                 block1.events().un('click', spy1);
-                block1.events().un({'click' : spy2});
+                block1.events().un({ 'click' : spy2 });
                 block1.emit('click');
 
                 spy1.should.not.have.been.called;
@@ -164,13 +164,13 @@ describe.only('BEM events', function() {
                             onSetMod : {
                                 'js' : {
                                     'inited' : function() {
-                                        //this.events(elem1)
+                                        // this.events(elem1)
                                         //    .on('click', spy1)
                                         //    .on('click', spy2)
                                         //    .on('click', data, spy3)
                                         //    .on({ 'click' : spy4 }, data);
                                         //
-                                        //this.domEvents('e2').on('click', spy5);
+                                        // this.domEvents('e2').on('click', spy5);
                                     }
                                 }
                             }

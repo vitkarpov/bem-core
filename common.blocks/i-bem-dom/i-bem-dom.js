@@ -421,6 +421,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
 
     /**
      * Filters results of findElem helper execution in strict mode
+     * @private
      * @param {Elem[]} res Elements
      * @returns {Elem[]}
      */
@@ -433,6 +434,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
 
     /**
      * Finds entities
+     * @private
      * @param {String} select
      * @param {Function|String|Object} entity
      * @param {Boolean} [onlyFirst=false]
@@ -529,6 +531,7 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
+     * @private
      * @override
      */
     _onSetMod : function(modName, modVal, oldModVal) {
@@ -916,7 +919,7 @@ var Block = inherit([BEM.Block, BemDomEntity], /** @lends Block.prototype */{
     /**
      * Clearing the cache for elements
      * @protected
-     * @param {Function|String|Object} [...elems] Nested elements names or description elem, modName, modVal
+     * @param {Function|...String|Object} [elems] Nested elements names or description elem, modName, modVal
      * @returns {BemDomEntity} this
      */
     dropElemCache : function(elems) {
@@ -952,6 +955,7 @@ var Elem = inherit([BEM.Elem, BemDomEntity], /** @lends Elem.prototype */{
     },
 
     /**
+     * @private
      * @override
      */
     _onSetMod : function(modName, modVal, oldModVal) {

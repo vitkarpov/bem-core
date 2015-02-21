@@ -91,7 +91,7 @@ describe('DOM events', function() {
 
             it('should properly unbind specified handler', function() {
                 block1.domEvents().un('click', spy1);
-                block1.domEvents().un({'click' : spy2});
+                block1.domEvents().un({ 'click' : spy2 });
                 block1.domElem.trigger('click');
 
                 spy1.should.not.have.been.called;
