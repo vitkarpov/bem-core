@@ -4,6 +4,7 @@
         'jquery',
         'objects',
         'functions',
+        'events',
         'dom',
         { mod : 'init' },
         { block : 'i-bem', elems : ['internal'] },

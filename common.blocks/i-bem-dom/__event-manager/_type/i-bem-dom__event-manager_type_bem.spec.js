@@ -1,7 +1,7 @@
 modules.define(
     'spec',
-    ['i-bem', 'i-bem-dom', 'objects', 'jquery', 'chai', 'sinon', 'BEMHTML'],
-    function(provide, BEM, BEMDOM, objects, $, chai, sinon, BEMHTML) {
+    ['i-bem', 'i-bem-dom', 'objects', 'events', 'jquery', 'chai', 'sinon', 'BEMHTML'],
+    function(provide, BEM, BEMDOM, objects, events, $, chai, sinon, BEMHTML) {
 
 var undef,
     expect = chai.expect;
@@ -81,8 +81,12 @@ describe.only('BEM events', function() {
                 spy2.should.have.been.called;
 
                 spy3.should.have.been.calledOn(block1);
-                spy3.args[0][0].bemTarget.should.be.instanceOf(Block1);
-                spy3.args[0][0].data.should.have.been.equal(data);
+                var spy3EventParam = spy3.args[0][0];
+                spy3EventParam.should.be.instanceOf(events.Event);
+                spy3EventParam.bemTarget.should.be.instanceOf(Block1);
+                spy3EventParam.bemTarget.should.be.equal(block1);
+                spy3EventParam.data.should.have.been.equal(data);
+
                 spy4.args[0][0].data.should.have.been.equal(data);
             });
 

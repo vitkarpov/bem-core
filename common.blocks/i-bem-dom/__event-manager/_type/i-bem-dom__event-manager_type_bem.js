@@ -39,21 +39,29 @@ var undef,
             var typeOfCtx = typeof ctx;
 
             if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
-                var elemName;
-                if(typeOfCtx === 'string') {
-                    ctx = { elem : elemName = ctx };
-                } else if(typeOfCtx === 'object') {
+                var entityName, blockName, elemName, modName, modVal;
+                if(typeOfCtx === 'string') { // elem name
+                    blockName = defCls._blockName;
+                    elemName = ctx;
+                } else if(typeOfCtx === 'object') { // bem entity with optional mod val
+                    blockName = ctx.block?
+                        ctx.block.getName() :
+                        defCls._blockName;
                     elemName = typeof ctx.elem === 'function'?
                         ctx.elem.getName() :
                         ctx.elem;
-                } else {
-                    // TODO: ctx can be class of a block, not elem
-                    ctx = { elem : elemName = ctx.getName() };
+                    modName = ctx.modName;
+                    modVal = ctx.modVal;
+                } else if(ctx.getName() === ctx.getEntityName()) { // block class
+                    blockName = ctx.getName();
+                } else { // elem class
+                    blockName = defCls._blockName;
+                    elemName = ctx.getName();
                 }
 
-                var entityName = BEMINTERNAL.buildClass(defCls._blockName, elemName);
+                entityName = BEMINTERNAL.buildClass(blockName, elemName);
                 res.entityCls = getEntityCls(entityName);
-                res.selector = '.' + (res.key = entityName + BEMINTERNAL.buildModPostfix(ctx.modName, ctx.modVal));
+                res.selector = '.' + (res.key = entityName + BEMINTERNAL.buildModPostfix(modName, modVal));
             }
         } else {
             res.entityCls = defCls;
@@ -173,10 +181,11 @@ provide({
             (instanceStorage[params.key] = new EventManager(
                 params,
                 function(fn, fnId) {
-                    return function(e, data, flags) {
+                    return function(e, data, flags, originalEvent) {
                         if(!flags[fnId]) {
-                            e.bemTarget = $(e.currentTarget).bem(params.entityCls);
-                            fn.call(instance, e);
+                            originalEvent.data = e.data;
+                            originalEvent.bemTarget = $(e.currentTarget).bem(params.entityCls);
+                            fn.call(instance, originalEvent);
                             flags[fnId] = true;
                         }
                     };

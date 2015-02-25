@@ -13,6 +13,7 @@ modules.define(
         'identify',
         'objects',
         'functions',
+        'events',
         'jquery',
         'dom'
     ],
@@ -26,6 +27,7 @@ modules.define(
         identify,
         objects,
         functions,
+        events,
         $,
         dom) {
 
@@ -504,9 +506,11 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     _ctxEmit : function(e, data) {
+        var eventName = bemEventManager.buildEventName(e, this.__self.getEntityName()),
+            event = new events.Event(eventName);
         this.domElem.trigger(
-            bemEventManager.buildEventName(e, this.__self.getEntityName()),
-            [data, {}]);
+            eventName,
+            [data, {}, event]);
 
         this.__base.apply(this, arguments);
     },
