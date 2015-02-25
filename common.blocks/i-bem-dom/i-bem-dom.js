@@ -506,11 +506,9 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     _ctxEmit : function(e, data) {
-        var eventName = bemEventManager.buildEventName(e, this.__self.getEntityName()),
-            event = new events.Event(eventName);
         this.domElem.trigger(
-            eventName,
-            [data, {}, event]);
+            bemEventManager.buildEventName(e, this.__self.getEntityName()),
+            [data, {}, e]);
 
         this.__base.apply(this, arguments);
     },

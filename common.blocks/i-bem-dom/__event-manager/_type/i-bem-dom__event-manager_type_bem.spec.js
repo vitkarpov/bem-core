@@ -50,7 +50,7 @@ describe.only('BEM events', function() {
                                 this.events()
                                     .on('click', spy1)
                                     .on('click', spy2)
-                                    .on('click', data, spy3)
+                                    .on('click', data, wrapSpy(spy3))
                                     .on({ 'click' : spy4 }, data);
                             }
                         }
@@ -118,6 +118,12 @@ describe.only('BEM events', function() {
 
                 spy5.should.have.been.called;
             });
+
+            it('should properly emit event as instance (not string)', function() {
+                var e = new events.Event('click');
+                block1.emit(e);
+                spy1.args[0][0].should.be.equal(e);
+            });
         });
 
         describe('nested blocks events', function() {
@@ -126,7 +132,7 @@ describe.only('BEM events', function() {
                     onSetMod : {
                         'js' : {
                             'inited' : function() {
-                                this.events(Block2).on('click', spy1);
+                                this.events(Block2).on('click', wrapSpy(spy1));
                             }
                         }
                     }
@@ -146,9 +152,11 @@ describe.only('BEM events', function() {
             });
 
             it('should properly handle events (bound in class context) from nested block', function() {
-                block1.findChildBlocks(Block2)[0].emit('click');
+                var block2 = block1.findChildBlocks(Block2)[1];
+                block2.emit('click');
 
                 spy1.should.have.been.calledOnce;
+                spy1.args[0][1].should.be.equal(block2);
             });
         });
 
