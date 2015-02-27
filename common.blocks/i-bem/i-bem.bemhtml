@@ -252,6 +252,8 @@ exports.apply = BEMContext.apply = function BEMContext_apply(context) {
     return ctx._str;
 };
 
+exports.BEMContext = BEMContext;
+
 BEMContext.prototype.reapply = BEMContext.apply;
 
 }); // oninit

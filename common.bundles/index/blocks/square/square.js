@@ -19,5 +19,4 @@ provide(bemDom.declBlock(this.name, {
         this._domEvents().on('click', this.prototype._onSquareClick);
     }
 }));
-
 });
