@@ -8,16 +8,14 @@
 modules.define('b-square', ['i-bem-dom', 'BEMHTML', 'i18n'], function(provide, iBemDom, BEMHTML, i18n) {
 
 provide(iBemDom.declBlock('b-square', {
-    _onSquareClick : function() {
-        this.toggleMod('color', '', 'green');
-        DOM.update(this.domElem, BEMHTML.apply({ block: 'test', content: i18n('b-square', 'js') }));
+    onSetMod : {
+        'js' : {
+            'inited' : function() {
+                this.toggleMod('color', '', 'green');
+                iBemDom.update(this.domElem, BEMHTML.apply({ block: 'b-square', content: i18n('b-square', 'js') }));
+            }
+        }
     }
-}, {
-    live : function() {
-        this.liveBindTo('click', function() {
-           this._onSquareClick();
-        });
-    }
-}));
+}, {}));
 
 });
