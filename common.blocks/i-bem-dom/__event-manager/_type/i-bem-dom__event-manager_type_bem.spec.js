@@ -6,13 +6,13 @@ modules.define(
 var undef,
     expect = chai.expect;
 
-describe.only('BEM events', function() {
+describe('BEM events', function() {
     var Block1, Block2, block1, spy1, spy2, spy3, spy4, spy5, spy6, spy7, spy8,
         wrapSpy = function(spy) {
             return function(e) {
                 // NOTE: we need to pass bemTarget explicitly, as `e` is being
                 // changed while event is propagating
-                spy.call(this, e, e.bemTarget);
+                spy.call(this, e, e.bemTarget, e.data);
             };
         },
         data = { data : 'data' };
@@ -134,6 +134,76 @@ describe.only('BEM events', function() {
                 var e = new events.Event('click');
                 block1.emit(e);
                 spy1.args[0][0].should.be.equal(e);
+            });
+        });
+
+        describe('block instance events', function() {
+            var block2_1, block2_2;
+            beforeEach(function() {
+                Block1 = BEMDOM.declBlock('block1', {
+                    onSetMod : {
+                        'js' : {
+                            'inited' : function() {
+                                this.events(block2_1 = this.findChildBlocks(Block2)[0])
+                                    .on('click', spy1)
+                                    .on('click', spy2)
+                                    .on('click', data, wrapSpy(spy3))
+                                    .on({ 'click' : wrapSpy(spy4) }, data);
+
+                                this.events(block2_2 = this.findChildBlocks(Block2)[1])
+                                    .on('click', spy5);
+                            }
+                        }
+                    }
+                });
+
+                Block2 = BEMDOM.declBlock('block2');
+
+                block1 = initDom({
+                    block : 'block1',
+                    content : [
+                        { block : 'block2' },
+                        { block : 'block2' }
+                    ]
+                }).bem(Block1);
+            });
+
+            it('should properly bind handlers', function() {
+                block2_1.emit('click');
+
+                spy1.should.have.been.called;
+                spy2.should.have.been.called;
+
+                spy3.should.have.been.calledOn(block1);
+                spy3.args[0][0].should.be.instanceOf(events.Event);
+                spy3.args[0][1].should.be.equal(block2_1);
+                spy3.args[0][2].should.have.been.equal(data);
+
+                spy4.args[0][2].should.have.been.equal(data);
+
+                spy5.should.not.have.been.called;
+            });
+
+            it('should properly unbind all handlers', function() {
+                block1.events(block2_1).un('click');
+                block2_1.emit('click');
+
+                spy1.should.not.have.been.called;
+                spy2.should.not.have.been.called;
+
+                block2_2.emit('click');
+
+                spy5.should.have.been.called;
+            });
+
+            it('should properly unbind specified handler', function() {
+                block1.events(block2_1).un('click', spy1);
+                block1.events(block2_1).un({ 'click' : spy2 });
+                block1.emit('click');
+
+                spy1.should.not.have.been.called;
+                spy2.should.not.have.been.called;
+                spy3.should.have.been.called;
             });
         });
 

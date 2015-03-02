@@ -38,7 +38,11 @@ var undef,
         if(ctx) {
             var typeOfCtx = typeof ctx;
 
-            if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
+            if(typeOfCtx === 'object' && ctx.__self) { // bem entity instance
+                res.ctx = ctx.domElem;
+                res.key = ctx.__self.getEntityName();
+                res.entityCls = ctx.__self;
+            } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
                 var entityName, blockName, elemName, modName, modVal;
                 if(typeOfCtx === 'string') { // elem name
                     blockName = defCls._blockName;
@@ -183,6 +187,8 @@ provide({
                 function(fn, fnId) {
                     return function(e, data, flags, originalEvent) {
                         if(!flags[fnId]) {
+                            console.log('!!!!!', e.data);
+                            // FIXME!!!!!!
                             originalEvent.data = e.data;
                             originalEvent.bemTarget = $(e.currentTarget).bem(params.entityCls);
                             flags[fnId] = true;
