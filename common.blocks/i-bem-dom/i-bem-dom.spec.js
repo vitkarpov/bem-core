@@ -779,8 +779,6 @@ describe('i-bem-dom', function() {
                     { elem : 'e1', js : { id : 'id' } }
                 ]
             });
-
-            console.log(rootNode[0].outerHTML)
         });
 
         it('shouldn\'t init live block', function() {
@@ -988,31 +986,6 @@ describe('i-bem-dom', function() {
                     { block : 'block', js : { id : 'bla', p3 : 3 } }
                 ]
             });
-        });
-    });
-
-    describe('emit', function() {
-        it('should emit context event with target', function() {
-            rootNode = $('<div/>');
-
-            var Block = BEMDOM.declBlock('block', {
-                    onSetMod : {
-                        'js' : {
-                            'inited' : function() {
-                                this.emit('event');
-                            }
-                        }
-                    }
-                }),
-                spy = sinon.spy();
-
-            BEM.entities['block'].on(rootNode, 'event', spy);
-            BEMDOM.update(rootNode, BEMHTML.apply({ block : 'block', js : true }));
-
-            var block = rootNode.find('.block').bem(Block);
-
-            spy.should.have.been.calledOnce;
-            spy.args[0][0].target.should.be.equal(block);
         });
     });
 

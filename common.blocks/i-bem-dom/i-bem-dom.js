@@ -56,12 +56,6 @@ var undef,
      */
     domElemToParams = {},
 
-    /**
-     * Storage for liveCtx event handlers
-     * @type Object
-     */
-    liveEventCtxStorage = {},
-
     entities = BEM.entities,
 
     BEM_CLASS = 'i-bem',
@@ -72,10 +66,6 @@ var undef,
 
     MOD_DELIM = BEMINTERNAL.MOD_DELIM,
     ELEM_DELIM = BEMINTERNAL.ELEM_DELIM,
-
-    EXTRACT_MODS_RE = RegExp(
-        '[^' + MOD_DELIM + ']' + MOD_DELIM + '(' + NAME_PATTERN + ')' +
-        '(?:' + MOD_DELIM + '(' + NAME_PATTERN + '))?$'),
 
     buildModPostfix = BEMINTERNAL.buildModPostfix,
     buildClass = BEMINTERNAL.buildClass,
@@ -286,12 +276,6 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
         this._uniqId = params.uniqId;
 
         uniqIdToEntity[this._uniqId] = this;
-
-        /**
-         * @member {Boolean} Flag for whether it's necessary to unbind from the document and window when destroying the entity
-         * @private
-         */
-        this._needSpecialUnbind = false;
 
         this.__base(null, params, initImmediately);
     },
@@ -622,16 +606,6 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
     },
 
     /**
-     * Builds a full name for a live event
-     * @private
-     * @param {String} e Event name
-     * @returns {String}
-     */
-    _buildCtxEventName : function(e) {
-        return this.getEntityName() + ':' + e;
-    },
-
-    /**
      * Returns an manager to bind and unbind events for particular context
      * @param {Function|String|Object} [ctx] context to bind,
      *     can be BEM-entity class, instance, element name or description (elem, modName, modVal)
@@ -657,54 +631,6 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
             ctx,
             BEMDOM.scope,
             getEntityCls);
-    },
-
-    /**
-     * Helper for live initialization when a different entity is initialized
-     * @private
-     * @param {String} event Event name
-     * @param {Function} entityCls Class of entity that should emit a reaction when initialized
-     * @param {Function} callback Handler to be called after successful initialization in the new entity's context
-     * @param {String} findFnName Name of the method for searching
-     */
-    _liveInitOnEntityEvent : function(event, entityCls, callback, findFnName) {
-        entityCls.on(
-            event,
-            function(e) {
-                var args = arguments,
-                    entity = e.target[findFnName](this);
-
-                callback && entity.forEach(function(entity) {
-                    callback.apply(entity, args);
-                });
-            },
-            this);
-
-        return this;
-    },
-
-    /**
-     * Helper for live initialization for a different entity's event on the current entity's DOM element
-     * @protected
-     * @param {String} event Event name
-     * @param {Function} entityCls Class of entity that should emit a reaction when initialized
-     * @param {Function} callback Handler to be called after successful initialization in the new entity's context
-     * @returns {Function} this
-     */
-    liveInitOnEntityEvent : function(event, entityCls, callback) {
-        return this._liveInitOnEntityEvent(event, entityCls, callback, 'findEntitysOn');
-    },
-
-    /**
-     * Helper for live initialization for a different entity's event inside the current entity
-     * @protected
-     * @param {String} event Event name
-     * @param {Function} entityCls Class of entity that should emit a reaction when initialized
-     * @param {Function} [callback] Handler to be called after successful initialization in the new block's context
-     * @returns {Function} this
-     */
-    liveInitOnEntityInsideEvent : function(event, entityCls, callback) {
-        return this._liveInitOnEntityEvent(event, entityCls, callback, 'findEntitysOutside');
     },
 
     /**
@@ -734,95 +660,6 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
         return typeof ctx === 'object' && ctx.jquery?
             this._liveCtxUnbind(ctx, e, fn, fnCtx) :
             this.__base(ctx, e, fn);
-    },
-
-    /**
-     * Adds a live event handler to an entity, based on a specified element where the event will be listened for
-     * @private
-     * @param {jQuery} ctx The element in which the event will be listened for
-     * @param {String} e  Event name
-     * @param {Object} [data] Additional information that the handler gets as e.data
-     * @param {Function} fn Handler
-     * @param {Object} [fnCtx] Handler context
-     * @returns {Function} this
-     */
-    _liveCtxBind : function(ctx, e, data, fn, fnCtx) {
-        if(typeof e === 'object') {
-            if(functions.isFunction(data) || functions.isFunction(fn)) { // mod change event
-                e = this._buildModEventName(e);
-            } else {
-                objects.each(e, function(fn, e) {
-                    this._liveCtxBind(ctx, e, fn, data);
-                }, this);
-                return this;
-            }
-        }
-
-        if(functions.isFunction(data)) {
-            fnCtx = fn;
-            fn = data;
-            data = undef;
-        }
-
-        if(e.indexOf(' ') > -1) {
-            e.split(' ').forEach(function(e) {
-                this._liveCtxBind(ctx, e, data, fn, fnCtx);
-            }, this);
-        } else {
-            var ctxE = this._buildCtxEventName(e),
-                storage = liveEventCtxStorage[ctxE] ||
-                    (liveEventCtxStorage[ctxE] = { counter : 0, ctxs : {} });
-
-            ctx.each(function() {
-                var ctxId = identify(this),
-                    ctxStorage = storage.ctxs[ctxId];
-                if(!ctxStorage) {
-                    ctxStorage = storage.ctxs[ctxId] = {};
-                    ++storage.counter;
-                }
-                ctxStorage[identify(fn) + (fnCtx? identify(fnCtx) : '')] = {
-                    fn : fn,
-                    data : data,
-                    ctx : fnCtx
-                };
-            });
-        }
-
-        return this;
-    },
-
-    /**
-     * Removes a live event handler from an entity, based on a specified element where the event was being listened for
-     * @private
-     * @param {jQuery} ctx The element in which the event was being listened for
-     * @param {String|Object} e Event name
-     * @param {Function} [fn] Handler
-     * @param {Object} [fnCtx] Handler context
-     * @returns {Function} this
-     */
-    _liveCtxUnbind : function(ctx, e, fn, fnCtx) {
-        if(typeof e === 'object' && functions.isFunction(fn)) { // mod change event
-            e = this._buildModEventName(e);
-        }
-
-        var storage = liveEventCtxStorage[e = this._buildCtxEventName(e)];
-
-        if(storage) {
-            ctx.each(function() {
-                var ctxId = identify(this, true),
-                    ctxStorage;
-                if(ctxId && (ctxStorage = storage.ctxs[ctxId])) {
-                    fn && delete ctxStorage[identify(fn) + (fnCtx? identify(fnCtx) : '')];
-                    if(!fn || objects.isEmpty(ctxStorage)) {
-                        storage.counter--;
-                        delete storage.ctxs[ctxId];
-                    }
-                }
-            });
-            storage.counter || delete liveEventCtxStorage[e];
-        }
-
-        return this;
     },
 
     /**
