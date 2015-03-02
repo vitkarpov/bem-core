@@ -46,20 +46,22 @@ var undef,
                 res.ctx = $(ctx);
                 res.key = identify(ctx);
             } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
-                var elemName;
-                if(typeOfCtx === 'string') {
-                    ctx = { elem : elemName = ctx };
-                } else if(typeOfCtx === 'object') {
+                var elemName, modName, modVal;
+                if(typeOfCtx === 'string') { // elem name
+                    elemName = ctx;
+                } else if(typeOfCtx === 'object') { // bem entity with optional mod val
                     elemName = typeof ctx.elem === 'function'?
                         ctx.elem.getName() :
                         ctx.elem;
-                } else {
-                    ctx = { elem : elemName = ctx.getName() };
+                    modName = ctx.modName;
+                    modVal = ctx.modVal;
+                } else { // elem class
+                    elemName = ctx.getName();
                 }
 
                 var entityName = BEMINTERNAL.buildClass(defCls._blockName, elemName);
                 res.entityCls = getEntityCls(entityName);
-                res.selector = '.' + (res.key = entityName + BEMINTERNAL.buildModPostfix(ctx.modName, ctx.modVal));
+                res.selector = '.' + (res.key = entityName + BEMINTERNAL.buildModPostfix(modName, modVal));
             }
         } else {
             res.entityCls = defCls;
