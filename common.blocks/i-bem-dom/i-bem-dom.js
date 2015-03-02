@@ -493,8 +493,8 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
 
     /**
      * Returns an manager to bind and unbind BEM events for particular context
-     * @param {Function|String|Object|document|window} [ctx=this.domElem] context to bind,
-     *     can be BEM-entity class, instance, element name or description (elem, modName, modVal), document or window
+     * @param {Function|String|Object} [ctx=this.domElem] context to bind,
+     *     can be BEM-entity class, instance, element name or description (elem, modName, modVal)
      * @returns {EventManager}
      * @todo think about passing BemDomEntity as a context
      */
@@ -633,13 +633,26 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
 
     /**
      * Returns an manager to bind and unbind events for particular context
-     * @param {Function|String|Object|document|window} [ctx=document] context to bind,
-     *     can be BEM-entity class, instance, element name or description (elem, modName, modVal), document or window
+     * @param {Function|String|Object} [ctx] context to bind,
+     *     can be BEM-entity class, instance, element name or description (elem, modName, modVal)
      * @returns {EventManager}
-     * @todo think about passing BemDomEntity as a context
      */
     domEvents : function(ctx) {
         return domEventManager.getClassEventManager(
+            this,
+            ctx,
+            BEMDOM.scope,
+            getEntityCls);
+    },
+
+    /**
+     * Returns an manager to bind and unbind BEM events for particular context
+     * @param {Function|String|Object} [ctx] context to bind,
+     *     can be BEM-entity class, instance, element name or description (elem, modName, modVal)
+     * @returns {EventManager}
+     */
+    events : function(ctx) {
+        return bemEventManager.getClassEventManager(
             this,
             ctx,
             BEMDOM.scope,

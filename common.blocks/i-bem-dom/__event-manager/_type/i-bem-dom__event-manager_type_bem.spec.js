@@ -90,6 +90,17 @@ describe.only('BEM events', function() {
                 spy4.args[0][0].data.should.have.been.equal(data);
             });
 
+            it('should not handle homonymous dom event', function() {
+                block1.domElem.trigger('click');
+                spy1.should.not.have.been.called;
+            });
+
+            it('should not handle homonymous bem event', function() {
+                block1.domEvents().on('click', spy6);
+                block1.emit('click');
+                spy6.should.not.have.been.called;
+            });
+
             it('should properly unbind all handlers', function() {
                 block1.events().un('click');
                 block1.emit('click');
@@ -363,7 +374,7 @@ describe.only('BEM events', function() {
         });
     });
 
-    describe.skip('live events', function() {
+    describe('live events', function() {
         function initDom(bemjson) {
             return createDomNode(bemjson).appendTo(BEMDOM.scope);
         }
@@ -403,6 +414,8 @@ describe.only('BEM events', function() {
                 spy3.args[0][1].should.be.instanceOf(Block1);
                 spy3.args[0][0].data.should.have.been.equal(data);
                 spy4.args[0][0].data.should.have.been.equal(data);
+
+                spy5.should.not.have.been.called;
             });
 
             it('should properly unbind all handlers', function() {
@@ -429,6 +442,10 @@ describe.only('BEM events', function() {
 
                 spy1.should.not.have.been.called;
                 spy2.should.not.have.been.called;
+
+                block1
+                    .findMixedBlock(Block2)
+                    .emit('click');
 
                 spy5.should.have.been.called;
             });
@@ -482,7 +499,7 @@ describe.only('BEM events', function() {
 
                     describe('block', function() {
                         it('should properly bind handlers', function() {
-                            block1.elem('e3').emit('click');
+                            block1.elem('e1').emit('click');
 
                             spy1.should.have.been.called;
                             spy1.should.have.been.calledOn(block1);

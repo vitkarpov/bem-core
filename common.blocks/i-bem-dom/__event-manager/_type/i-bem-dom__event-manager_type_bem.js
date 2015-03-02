@@ -185,15 +185,15 @@ provide({
                         if(!flags[fnId]) {
                             originalEvent.data = e.data;
                             originalEvent.bemTarget = $(e.currentTarget).bem(params.entityCls);
-                            fn.call(instance, originalEvent);
                             flags[fnId] = true;
+                            fn.call(instance, originalEvent);
                         }
                     };
                 }));
     },
 
     getClassEventManager : function(cls, ctx, scope, getEntityCls) {
-        /*var clsId = identify(cls),
+        var clsId = identify(cls),
             clsStorage = eventStorage[clsId] || (eventStorage[clsId] = {}),
             entitySelector = cls.buildSelector(),
             params = buildBemEventManagerParams(
@@ -206,17 +206,19 @@ provide({
         return clsStorage[params.key] ||
             (clsStorage[params.key] = new EventManager(
                 params,
-                function(fn) {
-                    return function(e) {
-                        // TODO: we could optimize all these "closest" to a single traversing
-                        var entityDomNode = $(e.target).closest(entitySelector);
-                        if(entityDomNode[0]) {
-                            e.bemTarget = $(this).bem(params.entityCls);
-                            fn.call(entityDomNode.bem(cls), e);
+                function(fn, fnId) {
+                    return function(e, data, flags, originalEvent) {
+                        if(!flags[fnId]) {
+                            var entityDomNode = $(e.target).closest(entitySelector);
+                            if(entityDomNode[0]) {
+                                originalEvent.bemTarget = $(this).bem(params.entityCls);
+                                originalEvent.data = e.data;
+                                flags[fnId] = true;
+                                fn.call(entityDomNode.bem(cls), originalEvent);
+                            }
                         }
                     };
                 }));
-        */
     },
 
     buildEventName : buildEventName
