@@ -463,10 +463,9 @@ var BemDomEntity = inherit(/** @lends BemDomEntity.prototype */{
 
     /**
      * Returns an manager to bind and unbind DOM events for particular context
-     * @param {Function|String|Object|document|window} [ctx=this.domElem] context to bind,
+     * @param {Function|String|Object|Elem|document|window} [ctx=this.domElem] context to bind,
      *     can be BEM-entity class, instance, element name or description (elem, modName, modVal), document or window
      * @returns {EventManager}
-     * @todo think about passing BemDomEntity as a context
      */
     domEvents : function(ctx) {
         return domEventManager.getInstanceEventManager(

@@ -301,6 +301,81 @@ describe('DOM events', function() {
                     });
                 });
             });
+
+            describe('elem as instance', function() {
+                var elem1, elem2;
+
+                beforeEach(function() {
+                    Block1 = BEMDOM.declBlock('block', {
+                        onSetMod : {
+                            'js' : {
+                                'inited' : function() {
+                                    this.domEvents(this.elem('e1'))
+                                        .on('click', spy1)
+                                        .on('click', spy2)
+                                        .on('click', data, spy3)
+                                        .on({ 'click' : spy4 }, data);
+
+                                    this.domEvents(this.elem('e2')).on('click', spy5);
+                                }
+                            }
+                        }
+                    });
+
+                    block1 = createDomNode({
+                        block : 'block',
+                        content : [
+                            { elem : 'e1', content : { elem : 'e3' } },
+                            { elem : 'e2', content : { elem : 'e1' } }
+                        ]
+                    }).bem(Block1);
+
+                    elem1 = block1.elem('e1');
+                    elem2 = block1.elem('e2');
+                });
+
+                describe('block', function() {
+                    it('should properly bind handlers', function() {
+                        block1.elem('e3').domElem.trigger('click');
+
+                        spy1.should.have.been.called;
+                        spy1.should.have.been.calledOn(block1);
+
+                        spy2.should.have.been.called;
+
+                        spy3.should.have.been.called;
+                        spy3.args[0][0].data.should.have.been.equal(data);
+                        spy3.args[0][0].bemTarget.should.be.equal(elem1);
+
+                        spy4.should.have.been.called;
+                        spy4.args[0][0].data.should.have.been.equal(data);
+
+                        spy5.should.not.have.been.called;
+                    });
+
+                    it('should properly unbind all handlers', function() {
+                        block1.domEvents(elem1).un('click');
+                        elem1.domElem.trigger('click');
+
+                        spy1.should.not.have.been.called;
+                        spy2.should.not.have.been.called;
+                        spy3.should.not.have.been.called;
+
+                        elem2.domElem.trigger('click');
+
+                        spy5.should.have.been.called;
+                    });
+
+                    it('should properly unbind specified handler', function() {
+                        block1.domEvents(elem1).un('click', spy2);
+                        elem1.domElem.trigger('click');
+
+                        spy1.should.have.been.called;
+                        spy2.should.not.have.been.called;
+                        spy3.should.have.been.called;
+                    });
+                });
+            });
         });
 
         describe('document events', function() {

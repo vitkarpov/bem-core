@@ -45,6 +45,10 @@ var undef,
             } else if(ctx === winNode || ctx === docNode) {
                 res.ctx = $(ctx);
                 res.key = identify(ctx);
+            } else if(typeOfCtx === 'object' && ctx.__self) { // bem entity instance
+                res.ctx = ctx.domElem;
+                res.key = ctx.__self.getEntityName();
+                res.entityCls = ctx.__self;
             } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
                 var elemName, modName, modVal;
                 if(typeOfCtx === 'string') { // elem name
