@@ -49,23 +49,6 @@ var undef,
                 res.ctx = ctx.domElem;
                 res.key = ctx.__self.getEntityName();
                 res.entityCls = ctx.__self;
-            } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
-                var elemName, modName, modVal;
-                if(typeOfCtx === 'string') { // elem name
-                    elemName = ctx;
-                } else if(typeOfCtx === 'object') { // bem entity with optional mod val
-                    elemName = typeof ctx.elem === 'function'?
-                        ctx.elem.getName() :
-                        ctx.elem;
-                    modName = ctx.modName;
-                    modVal = ctx.modVal;
-                } else { // elem class
-                    elemName = ctx.getName();
-                }
-
-                var entityName = BEMINTERNAL.buildClass(defCls._blockName, elemName);
-                res.entityCls = getEntityCls(entityName);
-                res.selector = '.' + (res.key = entityName + BEMINTERNAL.buildModPostfix(modName, modVal));
             }
         } else {
             res.entityCls = defCls;

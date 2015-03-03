@@ -43,29 +43,17 @@ var undef,
                 res.key = ctx.__self.getEntityName();
                 res.entityCls = ctx.__self;
             } else if(typeOfCtx === 'string' || typeOfCtx === 'object' || typeOfCtx === 'function') {
-                var entityName, blockName, elemName, modName, modVal;
-                if(typeOfCtx === 'string') { // elem name
-                    blockName = defCls._blockName;
-                    elemName = ctx;
-                } else if(typeOfCtx === 'object') { // bem entity with optional mod val
-                    blockName = ctx.block?
-                        ctx.block.getName() :
-                        defCls._blockName;
-                    elemName = typeof ctx.elem === 'function'?
-                        ctx.elem.getName() :
-                        ctx.elem;
+                var blockName, modName, modVal;
+                if(typeOfCtx === 'object') { // bem entity with optional mod val
+                    blockName = ctx.block? ctx.block.getName() : defCls._blockName;
                     modName = ctx.modName;
                     modVal = ctx.modVal;
                 } else if(ctx.getName() === ctx.getEntityName()) { // block class
                     blockName = ctx.getName();
-                } else { // elem class
-                    blockName = defCls._blockName;
-                    elemName = ctx.getName();
                 }
 
-                entityName = BEMINTERNAL.buildClass(blockName, elemName);
-                res.entityCls = getEntityCls(entityName);
-                res.selector = '.' + (res.key = entityName + BEMINTERNAL.buildModPostfix(modName, modVal));
+                res.entityCls = getEntityCls(blockName);
+                res.selector = '.' + (res.key = blockName + BEMINTERNAL.buildModPostfix(modName, modVal));
             }
         } else {
             res.entityCls = defCls;
