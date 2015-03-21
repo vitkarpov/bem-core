@@ -1,0 +1,76 @@
+{
+  "expr": true,
+  "eqeqeq": true,
+  "undef": true,
+  "boss": true,
+  "sub": true,
+  "supernew": true,
+  "loopfunc": true,
+
+  "overrides": {
+    "@(**/.bem|/.enb)/**/*.js": {
+      "node": true
+    },
+    "*.blocks/**/*.js": {
+      "browser": true,
+      "predef": ["modules"]
+    },
+    "*.blocks/**/*.@(vanilla|node|bemjson|deps|bh).js": {
+      "browser": null,
+      "predef": null
+    },
+    "*.blocks/**/*.vanilla.js": {
+      "predef": ["modules"]
+    },
+    "*.blocks/**/*.spec.js": {
+      "browser": true,
+      "predef": [
+        "modules",
+        "describe",
+        "it",
+        "before",
+        "beforeEach",
+        "after",
+        "afterEach"
+      ]
+    },
+    "*.blocks/**/*.bemhtml": {
+      "predef": [
+        "apply",
+        "applyCtx",
+        "applyNext",
+        "attrs",
+        "bem",
+        "block",
+        "cls",
+        "content",
+        "def",
+        "elem",
+        "elemMatch",
+        "js",
+        "local",
+        "match",
+        "mix",
+        "mod",
+        "mode",
+        "tag"
+      ]
+    },
+    "*.blocks/**/*.{bh.js,i18n/*}": {
+      "node": true
+    },
+    "common.blocks/i-bem/i-bem.test.bemhtml/*": {
+      "node": true,
+      "predef": [
+        "suite",
+        "test"
+      ]
+    },
+    "*.blocks/**/*.deps.js": {
+      "asi": true
+    },
+    "{*.bundles/,**/*.@(examples|tests|tmpl-specs)/}**/*.bemjson.js": {
+      "asi": true
+    }
+  }
+}

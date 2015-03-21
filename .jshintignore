@@ -1,0 +1,12 @@
+/.bem/cache/
+/.enb/tmp/
+
+common.blocks/vow/*
+common.blocks/inherit/*
+
+/*.docs
+/*.examples
+/*.specs
+/*.tmpl-specs
+/*.tests
+/*.sets
