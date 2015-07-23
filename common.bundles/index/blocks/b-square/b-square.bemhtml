@@ -1,3 +1,0 @@
-block('b-square').attrs()(function() {
-    return { title : this.i18n('b-square', 'js') };
-})
