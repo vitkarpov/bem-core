@@ -4,7 +4,7 @@ provide(bemDom.declBlock(this.name, {
     onSetMod : {
         'js' : {
             'inited' : function() {
-                this.bindTo('click', function() {
+                this._domEvents().on('click', function() {
                     this.domElem.text(i18n('logo', 'yandex-service', this.params.service));
                 });
             }
