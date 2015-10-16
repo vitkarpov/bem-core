@@ -16,7 +16,7 @@ In `i-bem.js`, two types of events are supported:
     where events are generated.
 
 DOM events should be used only in *internal* block procedures. Use BEM events for
-a block interaction with the *external* environment (other blocks).
+a block's interaction with the *external* environment (other blocks).
 
 <a name="delegated-events"></a>
 
@@ -31,7 +31,7 @@ at the time of subscribing to events.
 For example, a menu block can contain nested blocks — the menu items. Handling
 clicks on the menu items should logically be delegated to the menu
 block. First, this saves resources on
-subscribing to events (less resources are consumed by subscribing to a container single event
+subscribing to events (less resources are consumed by subscribing to a container's single event
 than by subscribing to many events on elements). Second, this makes it possible to add and remove menu items without subscribing to the events of added items or unsubscribing from the events of removed items.
 
 Both BEM events and DOM events can be delegated.
@@ -46,7 +46,7 @@ Interaction with DOM events in `i-bem.js` is fully implemented using the jQuery 
 
 A set of methods for subscribing to DOM events is reserved on the block instance object:
 
--   `bindTo([elem], event, handler)` — To events of the block main DOM node and its elements DOM nodes.
+-   `bindTo([elem], event, handler)` — To events of the block's main DOM node and its elements' DOM nodes.
 -   `bindToDoc(event, [data], handler)` – To events of the `document` DOM node.
 -   `bindToWin(event, [data], handler)` – To events of the `window` DOM node.
 
@@ -97,7 +97,7 @@ block instance where the event occurred.
 
 Subscriptions to DOM events are removed automatically when a block instance is destroyed. However, the block instance object has a set of methods reserved for removing subscriptions manually while the block is working:
 
--   `unbindFrom([elem], event, [handler])` — Unsubscribing from events of the block main DOM node and its elements DOM nodes.
+-   `unbindFrom([elem], event, [handler])` — Unsubscribing from events of the block's main DOM node and its elements' DOM nodes.
 -   `unbindFromDoc(event, [handler])` – Unsubscribing from events of the `document` DOM node.
 -   `unbindFromWin(event, [handler])` – Unsubscribing from events of the `window` DOM node.
 
@@ -114,7 +114,7 @@ _stopKeysListening : function() {
 
 The first argument the handler function gets is a jQuery object for the DOM event — [`{jQuery.Event}`](https://api.jquery.com/category/events/event-object/).
 
-This allows using the `stopPropagation` and `preventDefault` object methods for managing event propagation and the browser reaction to an event.
+This allows using the `stopPropagation` and `preventDefault` object methods for managing event propagation and the browser's reaction to an event.
 
 ```js
 BEMDOM.decl('my-block', {
@@ -147,7 +147,7 @@ A DOM event can be generated manually, such as using the jQuery `trigger` functi
 
 #### Delegating DOM events
 
-We recommend using the `liveBindTo([elem], event, handler)` method to delegate handling DOM events. In the block [static declaration methods](./i-bem-js-decl.en.md), the `live` property is reserved for subscribing to delegated DOM events.
+We recommend using the `liveBindTo([elem], event, handler)` method to delegate handling DOM events. In the block's [static declaration methods](./i-bem-js-decl.en.md), the `live` property is reserved for subscribing to delegated DOM events.
 
 **Example:** All instances of the `menu` block subscribe to the delegated `click` DOM event for their `item` elements. The `_onItemClick` method of the `menu` block instance will be invoked when any `item` in the menu is clicked. It doesn't matter whether this item existed when the instance was initialized.
 
@@ -167,7 +167,7 @@ If the `live` property is set in the block declaration, the initialization of bl
 
 ------------------------------------------------------------------------
 
-**NB** A handler function is executed in the context of the nearest block of this type in the direction of the DOM event bubbling (from bottom to top through the DOM tree).
+**NB** A handler function is executed in the context of the nearest block of this type in the direction of the DOM event's bubbling (from bottom to top through the DOM tree).
 
 ------------------------------------------------------------------------
 
@@ -204,7 +204,7 @@ In contrast to DOM events, BEM events are not generated on DOM elements, but on 
 
 The `emit(event, [data])` method of a block instance is used for generating BEM events.
 
-DOM events occur when a user interacts with a block controls. BEM events can be created as part of their processing by the block. This allows a level of abstraction over DOM events. BEM events are generated as a reaction to DOM events, but subject to certain conditions, such as whether a modifier is present or has a specific value.
+DOM events occur when a user interacts with a block's controls. BEM events can be created as part of their processing by the block. This allows a level of abstraction over DOM events. BEM events are generated as a reaction to DOM events, but subject to certain conditions, such as whether a modifier is present or has a specific value.
 
 For example, a click on the `submit` button (the `click` DOM event) will generate the `click` **BEM event** only if the block doesn't have the `disabled` modifier set:
 
@@ -322,7 +322,7 @@ The object describing the modifier can contain the following reserved properties
 
 Delegating BEM events means that the block subscribes to a particular BEM event on **all instances** of the block with the specified name **in the scope of the specified context**.
 
-Subscribing to delegated BEM events is performed using the `MyBlock.on([ctx], event, [data], handler, [handlerCtx])` static method of the block class.
+Subscribing to delegated BEM events is performed using the`MyBlock.on([ctx], event, [data], handler, [handlerCtx])` static method of the block's class.
 
 -   `{jQuery} [ctx]` — The DOM node where BEM events are monitored (the container). If omitted, the entire document is used as the container.
 -   `{String} event` — Name of the BEM event.
@@ -330,7 +330,7 @@ Subscribing to delegated BEM events is performed using the `MyBlock.on([ctx], ev
 -   `{Function} handler` — Event handler function.
 -   `{Object} [handlerCtx]` — Context of the event handler function. If omitted, the handler function executes in the context of the block instance where the event occurred.
 
-**Example:** During initialization of the `menu` block instance, it subscribes to the `click` BEM event on all links (instances of the `link` block) in the scope of the block DOM node (`this.domElem`). The current block instance is passed as the handler function context.
+**Example:** During initialization of the `menu` block instance, it subscribes to the `click` BEM event on all links (instances of the `link` block) in the scope of the block's DOM node (`this.domElem`). The current block instance is passed as the handler function context.
 
 ```js
 modules.define('menu', ['i-bem__dom', 'link'], function(provide, BEMDOM, Link) {
@@ -370,7 +370,7 @@ Any BEM events can be delegated, including events for changes to modifiers.
 ------------------------------------------------------------------------
 
 **NB** **Unsubscribing** from delegated BEM events never happens automatically. Subscriptions should always be removed explicitly using
-the block static method `un([ctx], event, [handler], [handlerCtx])`.
+the block's static method `un([ctx], event, [handler], [handlerCtx])`.
 
 ------------------------------------------------------------------------
 
@@ -382,7 +382,7 @@ When invoked, a handler function gets an argument with an object describing the 
 
 -   `target` — Instance of the block where the BEM event occurred.
 -   `data` — Any additional data passed as the `data` argument when subscribing to a BEM event.
--   `result` — The last value returned by this event handler. The same as [jQuery.Event.result](https://api.jquery.com/event.result/).
+-   `result` — The last value returned by this event's handler. The same as [jQuery.Event.result](https://api.jquery.com/event.result/).
 -   `type` — The type of event. The same as [jQuery.Event.type](https://api.jquery.com/event.type/).
 
 For more information about properties and methods of a BEM event object, see the [documentation for the 'events' block](../../common.blocks/events/events.en.md).

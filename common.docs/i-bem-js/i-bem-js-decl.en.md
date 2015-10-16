@@ -3,25 +3,25 @@
 Block declaration
 -----------------
 
-A block JS implementation defines the behavior of a specific class of web interface elements. In the actual interfaces, each block can be represented by multiple instances.
+A block's JS implementation defines the behavior of a specific class of web interface elements. In the actual interfaces, each block can be represented by multiple instances.
 A block instance implements the functionality of its class and has its own independent state.
 
 In **object-oriented programming** terms:
 
--   A block is a class
--   And a block instance is a class instance
+-   a block is a class,
+-   and a block instance is a class instance.
 
 In accordance with OOP, all the functionality of a block is implemented modularly in the methods of the class *(=block)*.
 
 The block methods are divided into:
 
--   Block instance methods
--   Static methods
+-   block instance methods
+-   static methods
 
 The code of a block in `i-bem.js` is called a **declaration** to emphasize the declarative programming style
 adopted in BEM.
 
-A block behavior is programmed in declarative style as statements: `set of conditions` — `block reaction`.
+A block's behavior is programmed in declarative style as statements: `set of conditions` — `block reaction`.
 
 <a name="decl-syntax"></a>
 
@@ -120,7 +120,7 @@ Several inheritance mechanisms are available in `i-bem.js`. The choice of a part
 
 With simple inheritance, the block being created is declared as a descendant of an existing one. To do this:
 
-1.  Specify the base block in the module system dependencies.
+1.  Specify the base block in the module system's dependencies.
 2.  Pass a reference to the base block in the special `baseBlock` field in the declaration.
 
 For example, the `bblock` block inherits from the `ablock` block:
@@ -155,7 +155,7 @@ that, in turn, inherits from a third block, and so on.
 
 To create a variation of an existing block that alters or supplements its functionality, you can **redefine** a base block on the project *redefinition level*.
 
-In the project, create a declaration of a new block with the same name as the base block. As a result, the block will have access to all the base block functionality. However, the implementation of methods and modifiers with the same name will be taken from the new declaration.
+In the project, create a declaration of a new block with the same name as the base block. As a result, the block will have access to all the base block's functionality. However, the implementation of methods and modifiers with the same name will be taken from the new declaration.
 
 ```js
 modules.define('ablock', ['i-bem__dom'], function(provide, BEMDOM) {
@@ -177,10 +177,10 @@ This type of inheritance is often used when working with library blocks.
 
 ##### Adding a modifier to a block
 
-According to the BEM methodology, a block states must be defined by [modifers](i-bem-js-states.en.md#modifers).
-So in order to extend a block functionality, you often need to implement support for new modifiers.
+According to the BEM methodology, a block's states must be defined by [modifers](i-bem-js-states.en.md#modifers).
+So in order to extend a block's functionality, you often need to implement support for new modifiers.
 
-To add a modifier, pass the redefined block `decl` method:
+To add a modifier, pass the redefined block's `decl` method:
 
 -   A hash with the `modName` and `modVal` keys. The `modName` value is a string with the modifier name. The `modVal` value is a string with the modifier value.
 -   A hash of methods that will be available for the block with the corresponding modifier. If there are methods and modifiers of the same name, their implementation from the hash is used.
@@ -201,9 +201,9 @@ provide(ABlock.decl({ modName : 'm1', modVal : 'v1' }, {})); // Redefining the b
 
 ------------------------------------------------------------------------
 
-**NB** The block [static methods](./i-bem-js-context.en.md) will be available to all its instances, *regardless of modifier values*.
+**NB** The block's [static methods](./i-bem-js-context.en.md) will be available to all its instances, *regardless of modifier values*.
 Modifiers are properties of the block instance, but static methods belong to the
-block class and do not take the status of modifiers into account.
+block's class and do not take the status of modifiers into account.
 
 ------------------------------------------------------------------------
 
@@ -259,7 +259,7 @@ provide(BEMDOM.declMix('mymix', //only a string with the name
 
 #### Trigger declaration
 
-[Triggers](./i-bem-js-states.en.md) that are executed when setting modifiers are described in the block declaration. The following properties are reserved for this purpose in the hash of the block instance methods:
+[Triggers](./i-bem-js-states.en.md) that are executed when setting modifiers are described in the block declaration. The following properties are reserved for this purpose in the hash of the block instance's methods:
 
 -   `beforeSetMod` — Triggers called before setting **block modifiers**.
 -   `beforeElemSetMod` — Triggers called before setting **element modifiers**.

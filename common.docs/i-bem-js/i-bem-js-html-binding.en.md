@@ -3,14 +3,14 @@
 Binding JS blocks to HTML
 -------------------------
 
-JavaScript components in `i-bem.js` are used for bringing a page HTML elements
+JavaScript components in `i-bem.js` are used for bringing a page's HTML elements
 to life. The typical task of a JS block is to set reactions to events inside an HTML fragment.
 
-In `i-bem.js`, the primary ”framework“ is the document HTML tree. Points are marked in it where interactive interface elements, the JS blocks, are connected.
+In `i-bem.js`, the primary "framework" is the document's HTML tree. Points are marked in it where interactive interface elements, the JS blocks, are connected.
 The binding point for a JS block is an HTML element (DOM node) whose `class` attribute
 specifies the name of the block, and the `data-bem` attribute specifies the [block parameters](./i-bem-js-params.en.md).
 
-When loading a page in the browser, [blocks are initialized](./i-bem-js-init.en.md). This creates instances of blocks — JS objects for all the blocks mentioned in classes of the page HTML elements. A JS object bound to an HTML element
+When loading a page in the browser, [blocks are initialized](./i-bem-js-init.en.md). This creates instances of blocks — JS objects for all the blocks mentioned in classes of the page's HTML elements. A JS object bound to an HTML element
 handles the [DOM events](i-bem-js-events.en.md#dom-events) that occur on it and stores the states of this block instance.
 
 This method of binding JavaScript components to HTML has the following advantages:
@@ -22,7 +22,11 @@ This method of binding JavaScript components to HTML has the following advantage
 
 ### Mechanism for binding blocks
 
-To bind a block to an HTML element (for example, `<div>...</div>`), it is necessary to:
+To bind a block to an HTML element (for example, ``
+
+...
+
+), it is necessary to:
 
 -   **Declare the block in `i-bem`**.
     Create the [ym](https://github.com/ymaps/modules) module containing the JS implementation of the block ([the declaration](./i-bem-js-decl.en.md)). To do this, pass a string with the block name as the first argument to the `modules.define` and `BEMDOM.decl` methods.
@@ -32,7 +36,7 @@ modules.define('my-block', ['i-bem__dom'], function(provide, BEMDOM){
 
 provide(BEMDOM.decl(this.name,
     {
-        /* instance methods */
+        /* instance's methods */
     },
     {
         /* static methods */
@@ -77,9 +81,9 @@ On the project level, each `ym` module is usually stored as a separate `js` file
 
 A single HTML element doesn't have to correspond to a single block instance. The following relationships between blocks and HTML elements are possible:
 
--   [One HTML element to one JS block](#one-html-element-to-one-js-block)
--   [One HTML element to multiple JS blocks](#one-html-element-to-multiple-js-blocks)
--   [One JS block to multiple HTML elements](#one-js-block-to-multiple-html-elements)
+-   [One HTML element to one JS block](#one-html-element-to-one-js-block).
+-   [One HTML element to multiple JS blocks](#one-html-element-to-multiple-js-blocks).
+-   [One JS block to multiple HTML elements](#one-js-block-to-multiple-html-elements).
 
 <a name="html-simple"></a>
 
@@ -125,18 +129,13 @@ To bind a block instance to multiple HTML elements, you must set the same value 
 The parameters specify the shared `id` — `maintab`.
 
 ```html
-<div class="user avatar i-bem"
-    data-bem='{
-        "user": { "name": "pushkin" },
-        "avatar": { "img": "http://..." }
-     }'>
-     ...
-</div>
+&lt;div class="notebook i-bem" data-bem="{ &amp;quot;notebook&amp;quot;: { &amp;quot;id&amp;quot;: &amp;quot;maintab&amp;quot; }}"&gt; &lt;/div&gt;
+ ... &lt;span class="notebook i-bem" data-bem="{ &amp;quot;notebook&amp;quot;: { &amp;quot;id&amp;quot;: &amp;quot;maintab&amp;quot; }}"&gt; &lt;/span&gt;
 ```
 
 As a result, when the blocks are initialized, a single JS object is created, with a [`domElem`](./i-bem-js-dom.en.md) field that contains references to the jQuery objects of both DOM nodes.
 
-For example, the ”tab“ widget, where a click on the tab title (the first HTML element) changes its content (the second HTML element).
+For example, the "tab" widget, where a click on the tab title (the first HTML element) changes its content (the second HTML element).
 Another example is a placemark that marks a point on a map (the first element), and the related description of the point in the list next to it (the second element).
 
 The `id` is used *only at the time of initializing* the block instance. The `id` value must be unique for instances of the same block in the context of a single [wave of initialization](i-bem-js-init.en.md#wave-of-initialization).
@@ -163,3 +162,4 @@ When creating a block instance without DOM representation, you must see to it th
 See also:
 
 -   [Initializing and deleting blocks without DOM representation](i-bem-js-init.en.md#initializing-and-deleting-blocks-without-dom-representation)
+

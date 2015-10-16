@@ -34,7 +34,7 @@ auxiliary `js` modifier.
 </div>
 ```
 
--   If a fragment of the DOM tree is deleted during workflow (using the `destruct` method of the `i-bem__dom` module), block instances are also deleted with it if their HTML elements are all located in this fragment. Before deleting a block instance, the `js` modifier is deleted so that the block [instance destructors](#instance-destructors) are executed.
+-   If a fragment of the DOM tree is deleted during workflow (using the `destruct` method of the `i-bem__dom` module), block instances are also deleted with it if their HTML elements are all located in this fragment. Before deleting a block instance, the `js` modifier is deleted so that the block's [instance destructors](#instance-destructors) are executed.
 
 ------------------------------------------------------------------------
 
@@ -84,7 +84,7 @@ onSetMod: {
 ### Block instance destructor
 
 The moment of block deletion is the moment when all references to
-the block JS object are destroyed. After this, the garbage collector can delete it from
+the block's JS object are destroyed. After this, the garbage collector can delete it from
 browser memory.
 
 The trigger to delete the `js` modifier (set it to an empty value
@@ -110,9 +110,9 @@ Initialization of a consecutive group of blocks is called a **wave of initializa
 
 A new wave of initialization is created in the following cases:
 
--   [Automatic initialization of blocks when the `domReady` event occurs](#automatic-initialization-of-blocks-when-the-)
--   [Initialization of a block when an event occurs](#initialization-of-a-block-when-an-event-occurs) (lazy initialization)
--   [Directly calling block initialization on a specified fragment of the DOM tree](#directly-calling-block-initialization-on-a-specified-fragment-of-the-dom-tree)
+-   [Automatic initialization of blocks when the `domReady` event occurs](#automatic-initialization-of-blocks-when-the-).
+-   [Initialization of a block when an event occurs](#initialization-of-a-block-when-an-event-occurs) (lazy initialization).
+-   [Directly calling block initialization on a specified fragment of the DOM tree](#directly-calling-block-initialization-on-a-specified-fragment-of-the-dom-tree).
 
 <a name="init-auto"></a>
 
@@ -183,7 +183,7 @@ provide(BEMDOM.decl(this.name,
 
 -   `false` — Allows cancelling lazy initialization of blocks that is set on another redefinition level.
 
-`Function` – a function that is executed before initializing the **first instance** of a block of the specified class. If the function returns `false`, instances of the block will be initialized [automatically](#automatically).
+`Function` – A function that is executed before initializing the **first instance** of a block of the specified class. If the function returns `false`, instances of the block will be initialized [automatically](#automatically).
 
 ```js
 modules.define('my-block', ['i-bem__dom', 'ua'], function(provide, BEMDOM, ua) {
@@ -216,7 +216,7 @@ provide(BEMDOM.decl(this.name, {
 
 To initialize block instances as DOM events or BEM events occur, subscribe to [delegated events](i-bem-js-events.en.md#delegated-events) in the function body or use a [helper](#helper).
 
-**Example:** Instances of `my-block` will be initialized on the `click` DOM event on the block DOM node. For each `click` DOM event, the `_onClick` method of the block instance is called:
+**Example:** Instances of `my-block` will be initialized on the `click` DOM event on the block's DOM node. For each `click` DOM event, the `_onClick` method of the block instance is called:
 
 ```js
 modules.define('my-block', ['i-bem__dom'], function(provide, BEMDOM) {
@@ -228,7 +228,7 @@ provide(BEMDOM.decl(this.name, {
         }
     },
 
-    _onClick: function(e) { /* ... */ } // executed on every ”click“ DOM event
+    _onClick: function(e) { /* ... */ } // executed on every "click" DOM event
 }, {
     live: function() {
         this.liveBindTo('click', function(e) {
@@ -243,7 +243,7 @@ provide(BEMDOM.decl(this.name, {
 
 ------------------------------------------------------------------------
 
-**NB** The `live` property applies to static methods of a block class. So even if it is set in the block declaration with a particular modifier, `live` will be applied to all the blocks in this class, regardless of the modifiers.
+**NB** The `live` property applies to static methods of a block's class. So even if it is set in the block declaration with a particular modifier, `live` will be applied to all the blocks in this class, regardless of the modifiers.
 
 ------------------------------------------------------------------------
 
@@ -254,9 +254,9 @@ provide(BEMDOM.decl(this.name, {
 To simplify initialization on events in the context of a block instance, a set of helper methods is reserved for subscribing to the following types of events:
 
 -   DOM events:
-    -   `liveBindTo([elemName], event, [callback])` — Subscribes to an event on the block DOM node or its elements, with deferred initialization. The block will be initialized on the first `event`. The `callback` handler function will be called on `event` and after block initialization.
-    -   `liveUnbindFrom([elemName], event, [callback])` — Deletes the subscription with deferred initialization on an event on the block DOM node or its elements.
-    -   `liveInitOnEvent([elemName], event, callback)` — Initialization on an event on the block DOM node or its elements.
+    -   `liveBindTo([elemName], event, [callback])` — Subscribes to an event on the block's DOM node or its elements, with deferred initialization. The block will be initialized on the first `event`. The `callback` handler function will be called on `event` and after block initialization.
+    -   `liveUnbindFrom([elemName], event, [callback])` — Deletes the subscription with deferred initialization on an event on the block's DOM node or its elements.
+    -   `liveInitOnEvent([elemName], event, callback)` — Initialization on an event on the block's DOM node or its elements.
 -   BEM events:
     -   `liveInitOnBlockEvent(event, blockName, callback)` — Initialization on a BEM event of an instance of a different block placed on the DOM node of the current block instance.
     -   `liveInitOnBlockInsideEvent(event, blockName, [callback])` — Initialization on a BEM event of an instance of a different block nested in the DOM node of the current block instance.
@@ -268,7 +268,7 @@ modules.define('menu', ['i-bem__dom', 'menu-item'], function(provide, BEMDOM) {
 
 provide(BEMDOM.decl(this.name, {
     _onItemClick : function(e, data) {
-        // handler function for the ”click“ BEM event on nested ”menu-item“ instances
+        // handler function for the "click" BEM event on nested "menu-item" instances
     }
 }, {
     live : function() {
@@ -294,7 +294,7 @@ In `i-bem.js`, the following functions perform dynamic initialization of blocks:
 -   `init`, `destruct` – Initialization/destruction of blocks on a specified fragment of the DOM tree.
 -   `update`, `replace`, `append`, `prepend`, `before`, `after` – Adding/replacing a fragment of the DOM tree with simultaneous initialization of blocks on the updated fragment.
 
-For an example of using functions that perform dynamic initialization, see [Dynamically updating blocks and elements in the DOM tree](i-bem-js-dom.en.md#dynamically-updating-blocks-and-elements-in-the-dom-tree).
+For an example of using functions that perform dynamic initialization, see "[Dynamically updating blocks and elements in the DOM tree](i-bem-js-dom.en.md#dynamically-updating-blocks-and-elements-in-the-dom-tree)".
 
 <a name="destruct-dom"></a>
 
@@ -304,8 +304,8 @@ Like the block initialization process, the deletion process can be called direct
 
 Explicitly invoking this procedure guarantees correct deletion of:
 
--   Nested DOM nodes.
--   Blocks mixed into other blocks.
+-   nested DOM nodes.
+-   blocks mixed into other blocks.
 
 Use the `BEMDOM.destruct` static method to explicitly invoke deletion.
 
@@ -328,4 +328,4 @@ Returns an instance of a block of the specified class.
 
 **Deletion** of instances of blocks without DOM representation can't be
 performed automatically. Blocks without DOM representation are normal JS objects and are deleted when
-all the references to the block object are deleted.
+all the references to the block's object are deleted.

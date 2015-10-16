@@ -25,7 +25,7 @@ If an HTML element has [multiple JS blocks bound to it](./i-bem-js-html-binding.
 </div>
 ```
 
-**Element parameters** are passed via the `data-bem` attribute of the element DOM node. For example, you can pass parameters to the `my-elem` element in the `my-block` block like this:
+**Element parameters** are passed via the `data-bem` attribute of the element's DOM node. For example, you can pass parameters to the `my-elem` element in the `my-block` block like this:
 
 ```html
 <div class="my-block i-bem" data-bem="{ " my-block="my-block">
@@ -41,7 +41,7 @@ Specifying the block name in the parameters provides the following advantages:
 
 ### Accessing parameters from a block instance
 
-You can access parameters from a block instance via the `this.params` field. Its value is a hash of parameters from the `data-bem` attribute of the block DOM element (`this.domElem`).
+You can access parameters from a block instance via the `this.params` field. Its value is a hash of parameters from the `data-bem` attribute of the block's DOM element (`this.domElem`).
 
 For example, you can access parameters of the `my-block` block like this:
 

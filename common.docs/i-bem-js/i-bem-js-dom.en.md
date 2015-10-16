@@ -15,7 +15,7 @@ The `this.domElem` field is reserved in the context of a block instance with DOM
 
 BEM elements of blocks are represented in `i-bem.js` as DOM nodes nested in the DOM node of a block instance.
 
-To access elements DOM nodes and work with their modifiers, use the block instance API:
+To access elements' DOM nodes and work with their modifiers, use the block instance API:
 
 -   Cached access: `elem(elems, [modName], [modVal])`. An element
     obtained this way does not need to be stored in a variable.
@@ -63,12 +63,12 @@ BEMDOM.decl('attach', {
 Accessing a different block in `i-bem.js` is performed from the current block
 located on a particular node of the DOM tree. The search for other blocks in
 the DOM tree can be made in three directions (axes) relative to
-the current block DOM node:
+the current block's DOM node:
 
 -   **Inside the block** — On DOM nodes nested in the DOM node of the current block. Helper methods: `findBlocksInside([elem], block)` and `findBlockInside([elem], block)`.
--   **Outside the block** — On DOM nodes that the current block DOM node
+-   **Outside the block** — On DOM nodes that the current block's DOM node
     is a descendent of. Helper methods: `findBlocksOutside([elem], block)` and `findBlockOutside([elem], block)`.
--   **On itself** — On the same DOM node where the current block is located. This is relevant when [multiple JS blocks are located on a single DOM node](i-bem-js-html-binding.en.md#multiple-js-blocks-are-located-on-a-single-dom-node) (a mix). Helper methods: `findBlocksOn([elem], block)` and `findBlockOn([elem], block)`.
+-   **On itself** — On the same DOM node where the current block is located. This is relevant when[multiple JS blocks are located on a single DOM node](i-bem-js-html-binding.en.md#multiple-js-blocks-are-located-on-a-single-dom-node) (a mix). Helper methods: `findBlocksOn([elem], block)` and `findBlockOn([elem], block)`.
 
 The signature of the helper methods is identical:
 
@@ -80,7 +80,7 @@ The helper methods for searching are paired. They differ in the values they retu
 -   `findBlocks<Direction>` – Returns an array of found blocks.
 -   `findBlock<Direction>` – Returns the first block found.
 
-**Example**: When the `disabled` modifier is toggled, the instance of the
+**Example**: When the`disabled` modifier is toggled, the instance of the
 `attach` block finds the `button` block nested inside it and toggles its
 `disabled` modifer to the same value that it received itself:
 
@@ -115,14 +115,16 @@ are provided in `i-bem.js` for adding and replacing
 fragments of the DOM tree.
 
 -   Add a DOM fragment:
-    -   `append` — to the end of the specified context.
-    -   `prepend` — to the beginning of the specified context.
-    -   `before` — before the specified context.
-    -   `after` — after the specified context.
+
+-   `append` — to the end of the specified context.
+-   `prepend` — to the beginning of the specified context.
+-   `before` — before the specified context.
+-   `after` — after the specified context.
 
 -   Replace a DOM fragment:
-    -   `update` — inside the specified context.
-    -   `replace` — replace the specified context with a new DOM fragment.
+
+-   `update` — inside the specified context.
+-   `replace` — replace the specified context with a new DOM fragment.
 
 All the functions automatically [initialize blocks on the updated fragment of the DOM tree](i-bem-js-init.en.md#initialize-blocks-on-the-updated-fragment-of-the-dom-tree).
 
@@ -131,11 +133,11 @@ of the DOM tree, you can use the
 [BEMHTML](https://en.bem.info/technology/bemhtml/current/intro/)template engine by enabling
 it as a [ym](https://github.com/ymaps/modules) module. BEM entities are described in
 [BEMJSON](https://en.bem.info/technology/bemjson/current/bemjson/)
- format directly in the block code. The `BEMHTML.apply` function generates
+ format directly in the block's code. The `BEMHTML.apply` function generates
 HTML elements for the BEMJSON declarations according to
 BEM naming conventions.
 
-**Example:** The `attach` block `_updateFileElem` method deletes the `file` element if it exists, and creates a new element using the `BEMHTML.apply` function:
+**Example:** The `attach` block's `_updateFileElem` method deletes the `file` element if it exists, and creates a new element using the `BEMHTML.apply` function:
 
 ```js
 modules.define(

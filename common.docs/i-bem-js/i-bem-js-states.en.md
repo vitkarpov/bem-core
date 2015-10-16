@@ -4,24 +4,25 @@ States of a block
 -----------------
 
 When designing a dynamic block in BEM style, you need to provide the complete logic of
-changes that occur in it as a set of **states** for the block. Then the block behavior is determined by
+changes that occur in it as a set of **states** for the block. Then the block's behavior is determined by
 **triggers** — callback functions that are performed when the block switches
 from one state to another.
 
-This allows you to write the block code declaratively as a set of statements in the format: `state description` — `action performed when switching to this state`.
+This allows you to write the block's code declaratively as a set of statements in the format: `state description` — `action performed when switching to this state`.
 
 <a name="modifiers"></a>
 
 ### Modifiers
 
-According to the BEM methodology,
+According to BEM methodology,
 **modifiers** describe the state of a block and its elements.
 
 A modifier indicates which of the possible states the block is in. A modifier is a **name** — **value** pair. The list of acceptable modifier values describes the set of block states. For example,
-to describe a block size, you can use the `size` modifier with the possible values `s`, `m` and `l`.
+to describe a block's size, you can use the `size` modifier with the possible values `s`, `m` and
+`l`.
 
 A **simple modifier** is a special case when only the presence or absence
-of the modifier on the block is important, and its value is insignificant. An example is the modifier describing the ”disabled“ state: `disabled`. A modifier with an unspecified `i-bem.js` value is interpreted as boolean and automatically assigned the value `true`.
+of the modifier on the block is important, and its value is insignificant. An example is the modifier describing the "disabled" state: `disabled`. A modifier with an unspecified `i-bem.js` value is interpreted as boolean and automatically assigned the value `true`.
 
 Each block can have one or more modifiers set. A block isn't required to have
 any modifiers. The block developer defines the list of acceptable modifiers and their
@@ -29,13 +30,13 @@ values.
 
 Modifiers are set during [initialization of a block instance](./i-bem-js-init.en.md) (if modifiers and their values are specified in the `class` attribute of the corresponding HTML element).
 
-Modifiers can change as part of the block functioning (for example, as a reaction to a [DOM event](i-bem-js-events.en.md#dom-event) of the block), or at the request of other blocks (see [Interaction of blocks](./i-bem-js-interact.en.md)).
+Modifiers can change as part of the block's functioning (for example, as a reaction to a [DOM event](i-bem-js-events.en.md#dom-event) of the block), or at the request of other blocks (see [Interaction of blocks](./i-bem-js-interact.en.md)).
 
 When setting, deleting, and changing modifier values, [triggers](#triggers) are executed.
 
 ------------------------------------------------------------------------
 
-**NB** If modifiers were set in a block HTML element before its initialization, the triggers to set these modifiers **are not executed**. In this case, the block instance gets its original state, and doesn't change it.
+**NB** If modifiers were set in a block's HTML element before its initialization, the triggers to set these modifiers **are not executed**. In this case, the block instance gets its original state, and doesn't change it.
 
 ------------------------------------------------------------------------
 
@@ -64,7 +65,7 @@ BEMDOM.decl('square', {
 });
 ```
 
-The same methods allow managing modifiers of the block elements. To do this, a reference to the **element DOM node** (not the element name) is passed as the first argument.
+The same methods allow managing modifiers of the block elements. To do this, a reference to the **element's DOM node** (not the element name) is passed as the first argument.
 
 **Example:** On a click, the `searchbox` block can assign its `input` element the simple modifier `clean` (the assumed value is `true`):
 
@@ -82,7 +83,7 @@ BEMDOM.decl('searchbox', {
 
 ------------------------------------------------------------------------
 
-For complete documentation of the API for managing modifiers, see the [JSDoc](https://en.bem.info/libs/bem-core/current/desktop/i-bem/jsdoc/) section for the `i-bem` block.
+For complete documentation of the API for managing modifiers, see the [JSDoc](https://en.bem.info/libs/bem-core/current/desktop/i-bem/jsdoc/) section in the `i-bem` block.
 
 <a name="mods-api-trigger"></a>
 
@@ -144,10 +145,10 @@ BEMDOM.decl('searchbox', {
 
 If the trigger for the phase prior to setting (`beforeSetMod`) returns `false`, the modifier is not set.
 
-For more information about using triggers, see [Declaring triggers](i-bem-js-decl.en.md#declaring-triggers).
+For more information about using triggers, see "[Declaring triggers](i-bem-js-decl.en.md#declaring-triggers)".
 
 ------------------------------------------------------------------------
 
-**NB** The trigger to set the `js` modifier to `inited` is a constructor of a block instance, but with the value `''` it is a destructor of a block instance. For more information, see [Initialization](./i-bem-js-init.en.md).
+**NB** The trigger to set the `js` modifier to `inited` is a constructor of a block instance, but with the value `''` it is a destructor of a block instance. For more information, see "[Initialization](./i-bem-js-init.en.md)".
 
 ------------------------------------------------------------------------
