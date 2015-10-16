@@ -3,9 +3,9 @@
 Context
 -------
 
-**A block instance methods** are executed in the context of the block instance JS object. The keyword `this` in the block instance methods references the JS object of the **block instance**.
+**A block instance's methods** are executed in the context of the block instance's JS object. The keyword `this` in the block instance methods references the JS object of the **block instance**.
 
-**Static methods** are executed in the context of the JS object that corresponds to the block class. The keyword `this` in a block static methods references the **block class**.
+**Static methods** are executed in the context of the JS object that corresponds to the block's class. The keyword `this` in a block's static methods references the **block's class**.
 
 ------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ Helper properties are provided by the [inherit](../../common.blocks/inherit/inhe
 
 #### Helper properties
 
-Helper properties are available in the declaration of a block static methods:
+Helper properties are available in the declaration of a block's static methods:
 
 -   `__base` – For calling the implementation of the method with the same name from the base class that this one inherits from (`super call`).
 
@@ -87,3 +87,4 @@ BEMDOM.decl({ block : 'extra', baseBlock : 'my-block' },
 -   `scope` — The root element of the DOM tree being processed. Allows executing several different versios of `i-bem.js` in the same runtime. By default, contains a reference to the `body` jQuery object.
 -   `doc` — A reference to the `document` jQuery object.
 -   `win` — A reference to the `window` jQuery object.
+
