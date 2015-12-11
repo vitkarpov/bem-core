@@ -1,4 +1,4 @@
-modules.define('jquery', function(provide, $) {
+modules.define('jquery__event_type_pointerpressrelease', function(provide, $) {
 
 $.each({
     pointerpress : 'pointerdown',
