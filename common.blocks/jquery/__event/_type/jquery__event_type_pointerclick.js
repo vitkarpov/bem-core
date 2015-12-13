@@ -784,8 +784,9 @@ var event = $.event.special.pointerclick = {
         }
     };
 
+$.FastClick = FastClick;
+
 $(function() {
-    FastClick.attach(document.body);
     provide($);
 });
 
